@@ -14,7 +14,118 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      consents: {
+        Row: {
+          consented_at: string
+          id: string
+          policy_version: string
+          user_id: string
+        }
+        Insert: {
+          consented_at?: string
+          id?: string
+          policy_version?: string
+          user_id: string
+        }
+        Update: {
+          consented_at?: string
+          id?: string
+          policy_version?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suggestions: {
+        Row: {
+          best_time: string | null
+          caption: string
+          created_at: string
+          credits_spent: number
+          hashtags: string[]
+          id: string
+          idea: string
+          platform: string
+          user_id: string
+        }
+        Insert: {
+          best_time?: string | null
+          caption: string
+          created_at?: string
+          credits_spent?: number
+          hashtags: string[]
+          id?: string
+          idea: string
+          platform: string
+          user_id: string
+        }
+        Update: {
+          best_time?: string | null
+          caption?: string
+          created_at?: string
+          credits_spent?: number
+          hashtags?: string[]
+          id?: string
+          idea?: string
+          platform?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          credits_left: number
+          email: string
+          id: string
+          industry: string | null
+          keywords: string[] | null
+          plan: Database["public"]["Enums"]["user_plan"]
+          trial_used: boolean
+          updated_at: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          credits_left?: number
+          email: string
+          id: string
+          industry?: string | null
+          keywords?: string[] | null
+          plan?: Database["public"]["Enums"]["user_plan"]
+          trial_used?: boolean
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          credits_left?: number
+          email?: string
+          id?: string
+          industry?: string | null
+          keywords?: string[] | null
+          plan?: Database["public"]["Enums"]["user_plan"]
+          trial_used?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +134,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_plan: "free_trial" | "pro" | "pro_xl" | "pro_unlimited"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +261,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_plan: ["free_trial", "pro", "pro_xl", "pro_unlimited"],
+    },
   },
 } as const
