@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sparkles, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { suggestionSchema } from "@/lib/validations";
 
 interface Suggestion {
   idea: string;
@@ -14,7 +15,7 @@ interface Suggestion {
 }
 
 export const AISuggestions = () => {
-  const [platform, setPlatform] = useState<string>("Instagram");
+  const [platform, setPlatform] = useState<string>("instagram");
   const [loading, setLoading] = useState(false);
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
   const [copied, setCopied] = useState(false);
@@ -23,6 +24,23 @@ export const AISuggestions = () => {
   const generateSuggestion = async () => {
     setLoading(true);
     try {
+      // Validate platform selection
+      const validation = suggestionSchema.safeParse({
+        platform,
+        brand: "user-brand", // Will be fetched from user profile in production
+        keywords: "",
+      });
+
+      if (!validation.success) {
+        toast({
+          title: "Valideringsfel",
+          description: validation.error.errors[0].message,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
@@ -31,6 +49,7 @@ export const AISuggestions = () => {
           description: "Du måste vara inloggad för att använda AI-förslag",
           variant: "destructive",
         });
+        setLoading(false);
         return;
       }
 
@@ -48,6 +67,7 @@ export const AISuggestions = () => {
         } else {
           throw response.error;
         }
+        setLoading(false);
         return;
       }
 
@@ -102,9 +122,9 @@ export const AISuggestions = () => {
                 <SelectValue placeholder="Välj plattform" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Instagram">Instagram</SelectItem>
-                <SelectItem value="TikTok">TikTok</SelectItem>
-                <SelectItem value="Facebook">Facebook</SelectItem>
+                <SelectItem value="instagram">Instagram</SelectItem>
+                <SelectItem value="tiktok">TikTok</SelectItem>
+                <SelectItem value="facebook">Facebook</SelectItem>
               </SelectContent>
             </Select>
 

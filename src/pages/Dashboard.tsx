@@ -16,6 +16,7 @@ import {
 import { Link } from "react-router-dom";
 import { AISuggestions } from "@/components/AISuggestions";
 import { ConnectionManager } from "@/components/ConnectionManager";
+import { useAuth } from "@/hooks/useAuth";
 
 // Demo data
 const stats = [
@@ -65,6 +66,8 @@ const stats = [
 ];
 
 const Dashboard = () => {
+  const { signOut } = useAuth();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Top nav */}
@@ -81,9 +84,9 @@ const Dashboard = () => {
               <Link to="/settings">
                 <Button variant="ghost">Inställningar</Button>
               </Link>
-              <Link to="/auth">
-                <Button variant="outline">Logga ut</Button>
-              </Link>
+              <Button variant="outline" onClick={signOut}>
+                Logga ut
+              </Button>
             </div>
           </div>
         </div>

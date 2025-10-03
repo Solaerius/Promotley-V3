@@ -1,33 +1,90 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { authSchema } from "@/lib/validations";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { signIn, signUp, user } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Demo implementation - would connect to Lovable Cloud auth
-    toast({
-      title: isLogin ? "Inloggning lyckades!" : "Konto skapat!",
-      description: "Du omdirigeras till dashboard...",
-    });
+    setErrors({});
+    setIsSubmitting(true);
 
-    // In production: redirect to dashboard after successful auth
-    setTimeout(() => {
-      window.location.href = "/dashboard";
-    }, 1500);
+    try {
+      // Validate input
+      const validation = authSchema.safeParse({
+        email,
+        password,
+        companyName: isLogin ? undefined : companyName,
+      });
+
+      if (!validation.success) {
+        const fieldErrors: Record<string, string> = {};
+        validation.error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0].toString()] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Perform authentication
+      const { error } = isLogin
+        ? await signIn(email, password)
+        : await signUp(email, password, companyName);
+
+      if (error) {
+        // Handle specific error messages
+        let errorMessage = "Ett fel uppstod. Försök igen.";
+        
+        if (error.message.includes("Invalid login credentials")) {
+          errorMessage = "Felaktig e-post eller lösenord.";
+        } else if (error.message.includes("User already registered")) {
+          errorMessage = "Ett konto med denna e-post finns redan.";
+        } else if (error.message.includes("Email not confirmed")) {
+          errorMessage = "Bekräfta din e-post innan du loggar in.";
+        }
+
+        toast({
+          title: isLogin ? "Inloggning misslyckades" : "Registrering misslyckades",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Fel",
+        description: "Något gick fel. Försök igen.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleGoogleLogin = async () => {
@@ -105,7 +162,11 @@ const Auth = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isSubmitting}
             />
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -117,11 +178,26 @@ const Auth = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={isSubmitting}
             />
+            {errors.password && (
+              <p className="text-sm text-destructive">{errors.password}</p>
+            )}
+            {!isLogin && (
+              <p className="text-xs text-muted-foreground">
+                Minst 8 tecken, innehåller stor och liten bokstav samt siffra
+              </p>
+            )}
           </div>
 
-          <Button type="submit" variant="gradient" className="w-full" size="lg">
-            {isLogin ? "Logga in" : "Skapa konto"}
+          <Button 
+            type="submit" 
+            variant="gradient" 
+            className="w-full" 
+            size="lg"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Laddar..." : isLogin ? "Logga in" : "Skapa konto"}
           </Button>
         </form>
 

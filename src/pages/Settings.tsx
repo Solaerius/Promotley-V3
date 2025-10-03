@@ -4,10 +4,12 @@ import { Sparkles, Download, Trash2, Link as LinkIcon, Instagram, Music2, Facebo
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
+import { useAuth } from "@/hooks/useAuth";
 
 const Settings = () => {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  const { signOut } = useAuth();
 
   const handleDownloadData = () => {
     toast({
@@ -47,9 +49,9 @@ const Settings = () => {
               <Link to="/dashboard">
                 <Button variant="ghost">Dashboard</Button>
               </Link>
-              <Link to="/auth">
-                <Button variant="outline">Logga ut</Button>
-              </Link>
+              <Button variant="outline" onClick={signOut}>
+                Logga ut
+              </Button>
             </div>
           </div>
         </div>

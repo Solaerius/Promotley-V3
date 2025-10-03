@@ -92,6 +92,49 @@ Deno.serve(async (req) => {
     const body: SuggestionRequest = await req.json();
     const { platform, brand, keywords, recentMetrics } = body;
 
+    // Server-side input validation
+    if (!platform || typeof platform !== 'string') {
+      return new Response(
+        JSON.stringify({ error: "Platform är obligatorisk" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const validPlatforms = ['instagram', 'tiktok', 'facebook'];
+    if (!validPlatforms.includes(platform.toLowerCase())) {
+      return new Response(
+        JSON.stringify({ error: "Ogiltig plattform. Välj instagram, tiktok eller facebook" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Validate optional fields
+    if (brand && (typeof brand !== 'string' || brand.length > 100)) {
+      return new Response(
+        JSON.stringify({ error: "Varumärket får vara max 100 tecken" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (keywords && Array.isArray(keywords) && keywords.join(', ').length > 500) {
+      return new Response(
+        JSON.stringify({ error: "Nyckelord får vara max 500 tecken totalt" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     // Bygg prompt
     const companyName = brand || userData.company_name || "företaget";
     const industry = userData.industry || "din bransch";
