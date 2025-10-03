@@ -1,19 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, TrendingUp, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
-import heroBg from "@/assets/hero-bg.jpg";
 
 const Hero = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background with gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-hero">
-        <img 
-          src={heroBg} 
-          alt="AI Marketing Dashboard"
-          className="w-full h-full object-cover opacity-40"
-        />
-      </div>
+      {/* Dark gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(344_45%_8%)] via-[hsl(331_56%_15%)] to-[hsl(9_84%_20%)]" />
       
       {/* Content */}
       <div className="container relative z-10 px-4 py-20 mx-auto">
