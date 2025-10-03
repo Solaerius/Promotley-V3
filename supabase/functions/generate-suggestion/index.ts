@@ -6,6 +6,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+};
+
 interface SuggestionRequest {
   platform: string;
   brand?: string;
@@ -15,16 +21,25 @@ interface SuggestionRequest {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: { ...corsHeaders, ...securityHeaders } });
   }
 
   try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    
     // Hämta användare från JWT
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
+      await supabaseAdmin.rpc('log_security_event', {
+        _user_id: null,
+        _event_type: 'unauthorized_ai_request',
+        _event_details: { error: 'Missing auth header' }
+      });
       return new Response(JSON.stringify({ error: "Ingen autentisering" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -40,10 +55,34 @@ Deno.serve(async (req) => {
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
+      await supabaseAdmin.rpc('log_security_event', {
+        _user_id: null,
+        _event_type: 'unauthorized_ai_request',
+        _event_details: { error: 'Invalid auth token' }
+      });
       return new Response(JSON.stringify({ error: "Ogiltig användare" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Check rate limits
+    const { data: rateLimitOk } = await supabaseAdmin.rpc('check_rate_limit', {
+      _user_id: user.id,
+      _endpoint: 'generate-suggestion'
+    });
+
+    if (!rateLimitOk) {
+      console.log('Rate limit exceeded for user:', user.id);
+      return new Response(
+        JSON.stringify({ 
+          error: 'För många förfrågningar. Vänta en stund innan du försöker igen.' 
+        }),
+        { 
+          status: 429,
+          headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" }
+        }
+      );
     }
 
     // Hämta användarens plan och krediter
@@ -237,15 +276,31 @@ Håll tonen professionell men ungdomlig, perfekt för UF-företag.`;
     console.log("Förslag genererat och sparat:", suggestion);
 
     return new Response(JSON.stringify(suggestion), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("General error:", error);
+    
+    // Log security event for AI generation errors
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+      
+      await supabaseAdmin.rpc('log_security_event', {
+        _user_id: null,
+        _event_type: 'ai_generation_failed',
+        _event_details: { error: error instanceof Error ? error.message : 'Unknown error' }
+      });
+    } catch (logError) {
+      console.error('Failed to log security event:', logError);
+    }
+    
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Okänt fel" }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
       }
     );
   }

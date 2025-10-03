@@ -64,6 +64,30 @@ export const ConnectionManager = () => {
         return;
       }
 
+      // Generate cryptographically secure state token
+      const stateToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      // Store state token in database
+      const { error: stateError } = await supabase
+        .from('oauth_states')
+        .insert({
+          state_token: stateToken,
+          user_id: session.user.id,
+          provider: 'meta_fb'
+        });
+
+      if (stateError) {
+        console.error('Failed to create OAuth state:', stateError);
+        toast({
+          title: "Säkerhetsfel",
+          description: "Kunde inte initiera säker anslutning.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Get Meta App ID from backend
       const { data: appIdData, error: appIdError } = await supabase.functions.invoke('get-meta-app-id');
       
@@ -82,12 +106,12 @@ export const ConnectionManager = () => {
         'read_insights'
       ].join(',');
 
-      // Build OAuth URL
+      // Build OAuth URL with secure state token
       const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +
         `client_id=${metaAppId}&` +
         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
         `scope=${encodeURIComponent(permissions)}&` +
-        `state=${session.user.id}&` +
+        `state=${stateToken}&` +
         `response_type=code`;
 
       // Redirect to Facebook OAuth

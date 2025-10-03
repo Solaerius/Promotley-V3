@@ -5,34 +5,103 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Security headers
+const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+};
+
+// Simple encryption using Web Crypto API (AES-GCM)
+async function encryptToken(token: string, key: CryptoKey): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  
+  const encryptedData = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    data
+  );
+  
+  // Combine IV and encrypted data, then base64 encode
+  const combined = new Uint8Array(iv.length + encryptedData.byteLength);
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(encryptedData), iv.length);
+  
+  return btoa(String.fromCharCode(...combined));
+}
+
+async function getEncryptionKey(): Promise<CryptoKey> {
+  const secret = Deno.env.get('META_APP_SECRET') || 'fallback-key-for-dev';
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret.padEnd(32, '0').slice(0, 32));
+  
+  return await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'AES-GCM' },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: { ...corsHeaders, ...securityHeaders } });
   }
 
   try {
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
-    const state = url.searchParams.get('state');
+    const stateToken = url.searchParams.get('state');
     const provider = url.searchParams.get('provider') || 'meta_fb';
 
-    console.log('OAuth callback received:', { provider, hasCode: !!code, hasState: !!state });
+    console.log('OAuth callback received:', { provider, hasCode: !!code, hasState: !!stateToken });
 
-    if (!code) {
-      throw new Error('Authorization code missing');
+    if (!code || !stateToken) {
+      throw new Error('Authorization code or state missing');
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get user ID from state parameter
-    const userId = state;
-    if (!userId) {
-      throw new Error('Missing user ID in state');
+    // Validate state token and get user ID
+    const { data: stateData, error: stateError } = await supabase
+      .from('oauth_states')
+      .select('*')
+      .eq('state_token', stateToken)
+      .eq('provider', provider)
+      .eq('consumed', false)
+      .single();
+
+    if (stateError || !stateData) {
+      console.error('Invalid state token:', stateError);
+      await supabase.rpc('log_security_event', {
+        _user_id: null,
+        _event_type: 'oauth_invalid_state',
+        _event_details: { provider, error: 'Invalid or expired state token' }
+      });
+      throw new Error('Invalid or expired state token');
     }
 
-    console.log('User ID from state:', userId);
+    // Check if state is expired (older than 10 minutes)
+    const stateAge = Date.now() - new Date(stateData.created_at).getTime();
+    if (stateAge > 10 * 60 * 1000) {
+      console.error('State token expired');
+      throw new Error('State token expired');
+    }
+
+    // Mark state as consumed
+    await supabase
+      .from('oauth_states')
+      .update({ consumed: true, consumed_at: new Date().toISOString() })
+      .eq('id', stateData.id);
+
+    const userId = stateData.user_id;
+    console.log('Validated user ID from state:', userId);
 
     // Exchange code for access token based on provider
     let accessToken: string;
@@ -89,7 +158,11 @@ Deno.serve(async (req) => {
       throw new Error(`Provider ${provider} not supported yet`);
     }
 
-    // Store tokens (encrypted in production)
+    // Encrypt tokens before storage
+    const encryptionKey = await getEncryptionKey();
+    const encryptedAccessToken = await encryptToken(accessToken, encryptionKey);
+    const encryptedRefreshToken = refreshToken ? await encryptToken(refreshToken, encryptionKey) : null;
+    
     const expiresAt = expiresIn 
       ? new Date(Date.now() + expiresIn * 1000).toISOString()
       : null;
@@ -99,8 +172,8 @@ Deno.serve(async (req) => {
       .upsert({
         user_id: userId,
         provider: provider,
-        access_token_enc: accessToken,
-        refresh_token_enc: refreshToken,
+        access_token_enc: encryptedAccessToken,
+        refresh_token_enc: encryptedRefreshToken,
         expires_at: expiresAt,
       }, {
         onConflict: 'user_id,provider'
@@ -108,10 +181,15 @@ Deno.serve(async (req) => {
 
     if (tokenError) {
       console.error('Error storing token:', tokenError);
+      await supabase.rpc('log_security_event', {
+        _user_id: userId,
+        _event_type: 'oauth_token_storage_failed',
+        _event_details: { provider, error: tokenError.message }
+      });
       throw tokenError;
     }
 
-    console.log('Token stored successfully');
+    console.log('Encrypted token stored successfully');
 
     // Create connection record
     const { error: connectionError } = await supabase
@@ -132,12 +210,23 @@ Deno.serve(async (req) => {
 
     console.log('Connection created successfully');
 
+    // Log successful OAuth connection
+    await supabase.rpc('log_security_event', {
+      _user_id: userId,
+      _event_type: 'oauth_connection_success',
+      _event_details: { provider, account_id: accountId }
+    });
+
+    // Clean up expired states
+    await supabase.rpc('cleanup_expired_oauth_states');
+
     // Redirect back to app
     const appUrl = supabaseUrl.replace('.supabase.co', '.lovable.app');
     return new Response(null, {
       status: 302,
       headers: {
         ...corsHeaders,
+        ...securityHeaders,
         'Location': `${appUrl}/dashboard?connected=${provider}`,
       },
     });
@@ -145,11 +234,27 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('OAuth callback error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    // Log security event for failed OAuth
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      
+      await supabase.rpc('log_security_event', {
+        _user_id: null,
+        _event_type: 'oauth_callback_failed',
+        _event_details: { error: errorMessage }
+      });
+    } catch (logError) {
+      console.error('Failed to log security event:', logError);
+    }
+    
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { 
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
       }
     );
   }

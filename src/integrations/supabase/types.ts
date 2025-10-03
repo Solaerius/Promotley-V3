@@ -126,6 +126,96 @@ export type Database = {
           },
         ]
       }
+      oauth_states: {
+        Row: {
+          code_verifier: string | null
+          consumed: boolean
+          consumed_at: string | null
+          created_at: string
+          id: string
+          provider: string
+          state_token: string
+          user_id: string
+        }
+        Insert: {
+          code_verifier?: string | null
+          consumed?: boolean
+          consumed_at?: string | null
+          created_at?: string
+          id?: string
+          provider: string
+          state_token: string
+          user_id: string
+        }
+        Update: {
+          code_verifier?: string | null
+          consumed?: boolean
+          consumed_at?: string | null
+          created_at?: string
+          id?: string
+          provider?: string
+          state_token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          endpoint: string
+          id: string
+          last_request: string
+          request_count: number
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          endpoint: string
+          id?: string
+          last_request?: string
+          request_count?: number
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          endpoint?: string
+          id?: string
+          last_request?: string
+          request_count?: number
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
+      security_events: {
+        Row: {
+          created_at: string
+          event_details: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       suggestions: {
         Row: {
           best_time: string | null
@@ -216,6 +306,8 @@ export type Database = {
           company_name: string | null
           created_at: string
           credits_left: number
+          deleted_at: string | null
+          deletion_scheduled_at: string | null
           email: string
           id: string
           industry: string | null
@@ -228,6 +320,8 @@ export type Database = {
           company_name?: string | null
           created_at?: string
           credits_left?: number
+          deleted_at?: string | null
+          deletion_scheduled_at?: string | null
           email: string
           id: string
           industry?: string | null
@@ -240,6 +334,8 @@ export type Database = {
           company_name?: string | null
           created_at?: string
           credits_left?: number
+          deleted_at?: string | null
+          deletion_scheduled_at?: string | null
           email?: string
           id?: string
           industry?: string | null
@@ -255,7 +351,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_rate_limit: {
+        Args: { _endpoint: string; _user_id: string }
+        Returns: boolean
+      }
+      cleanup_expired_oauth_states: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      log_security_event: {
+        Args: {
+          _event_details?: Json
+          _event_type: string
+          _ip_address?: string
+          _user_agent?: string
+          _user_id: string
+        }
+        Returns: string
+      }
+      soft_delete_user_account: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       social_provider: "meta_ig" | "meta_fb" | "tiktok"
