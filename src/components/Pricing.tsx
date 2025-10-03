@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 const plans = [
   {
-    name: "Promotely Pro",
+    name: "Promotley Pro",
     price: "49",
     credits: "100",
     features: [

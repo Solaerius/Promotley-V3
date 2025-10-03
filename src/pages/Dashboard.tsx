@@ -76,8 +76,8 @@ const Dashboard = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-              <img src={logo} alt="Promotely Logo" className="w-10 h-10" />
-              <span>Promotely</span>
+              <img src={logo} alt="Promotley Logo" className="w-10 h-10" />
+              <span>Promotley</span>
             </Link>
             <div className="flex items-center gap-3">
               <Link to="/settings">

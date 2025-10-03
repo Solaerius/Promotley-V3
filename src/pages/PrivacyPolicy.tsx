@@ -21,7 +21,7 @@ const PrivacyPolicy = () => {
               Senast uppdaterad: {new Date().toLocaleDateString('sv-SE')}
             </p>
             <p>
-              Denna integritetspolicy beskriver hur Promotely ("vi", "oss", "vår") samlar in, använder och skyddar din personliga information när du använder vår tjänst.
+              Denna integritetspolicy beskriver hur Promotley ("vi", "oss", "vår") samlar in, använder och skyddar din personliga information när du använder vår tjänst.
             </p>
           </section>
 
@@ -107,14 +107,14 @@ const PrivacyPolicy = () => {
               Om du har frågor om denna integritetspolicy eller hur vi hanterar dina personuppgifter, vänligen kontakta oss på:
             </p>
             <p className="mt-4">
-              E-post: privacy@promotely.se<br />
-              Adress: Promotely, Stockholm, Sverige
+              E-post: privacy@promotley.se<br />
+              Adress: Promotley, Stockholm, Sverige
             </p>
           </section>
 
           <section className="pt-8 border-t">
             <p className="text-sm text-muted-foreground">
-              Genom att använda Promotely godkänner du denna integritetspolicy och vår behandling av dina personuppgifter enligt beskrivningen ovan.
+              Genom att använda Promotley godkänner du denna integritetspolicy och vår behandling av dina personuppgifter enligt beskrivningen ovan.
             </p>
           </section>
         </div>

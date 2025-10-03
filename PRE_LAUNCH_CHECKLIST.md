@@ -1,4 +1,4 @@
-# 🚀 Pre-Launch Checklist - Promotely
+# 🚀 Pre-Launch Checklist - Promotley
 
 ## ✅ Security Status: READY TO PUBLISH
 

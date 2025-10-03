@@ -9,8 +9,8 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-            <img src={logo} alt="Promotely Logo" className="w-10 h-10" />
-            <span>Promotely</span>
+            <img src={logo} alt="Promotley Logo" className="w-10 h-10" />
+            <span>Promotley</span>
           </Link>
 
           {/* Navigation */}

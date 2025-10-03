@@ -47,7 +47,7 @@ const Features = () => {
             </span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            Promotely kombinerar avancerad AI-teknologi med djup förståelse för sociala medier
+            Promotley kombinerar avancerad AI-teknologi med djup förståelse för sociala medier
           </p>
         </div>
 

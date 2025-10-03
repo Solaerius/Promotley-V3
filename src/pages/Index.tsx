@@ -19,7 +19,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t py-12 px-4">
         <div className="container mx-auto text-center text-muted-foreground">
-          <p>© 2025 Promotely. AI-driven marknadsföring för UF-företag.</p>
+          <p>© 2025 Promotley. AI-driven marknadsföring för UF-företag.</p>
           <div className="mt-4">
             <Link to="/privacy-policy" className="hover:text-foreground transition-colors">
               Integritetspolicy

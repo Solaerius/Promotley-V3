@@ -41,8 +41,8 @@ const Settings = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-              <img src={logo} alt="Promotely Logo" className="w-10 h-10" />
-              <span>Promotely</span>
+              <img src={logo} alt="Promotley Logo" className="w-10 h-10" />
+              <span>Promotley</span>
             </Link>
             <div className="flex items-center gap-3">
               <Link to="/dashboard">
@@ -194,7 +194,7 @@ const Settings = () => {
           {/* Privacy note */}
           <Card className="p-6 bg-gradient-hero">
             <p className="text-sm text-muted-foreground">
-              📋 <strong>Integritetspolicy:</strong> Promotely behandlar din data säkert enligt GDPR. 
+              📋 <strong>Integritetspolicy:</strong> Promotley behandlar din data säkert enligt GDPR.
               All kommunikation är krypterad (SSL/TLS) och vi samlar endast in data som är 
               nödvändig för tjänstens funktionalitet. Du har full kontroll över din data.
             </p>

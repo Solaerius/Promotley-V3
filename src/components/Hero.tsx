@@ -27,7 +27,7 @@ const Hero = () => {
 
           {/* Subheading */}
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Promotely analyserar dina sociala medier och ger dig personliga AI-förslag 
+            Promotley analyserar dina sociala medier och ger dig personliga AI-förslag 
             för att maximera engagemang och tillväxt.
           </p>
 

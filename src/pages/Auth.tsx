@@ -118,8 +118,8 @@ const Auth = () => {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link to="/" className="flex items-center gap-2 font-bold text-2xl">
-            <img src={logo} alt="Promotely Logo" className="w-12 h-12" />
-            <span>Promotely</span>
+            <img src={logo} alt="Promotley Logo" className="w-12 h-12" />
+            <span>Promotley</span>
           </Link>
         </div>
 
