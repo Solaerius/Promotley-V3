@@ -49,7 +49,7 @@ const BeforeAfterSlider = () => {
                 setSliderPosition(50);
                 setHasAnimated(true);
               }
-            }, 30);
+            }, 50); // Slower animation - increased from 30ms to 50ms
           }
         });
       },
@@ -107,13 +107,14 @@ const BeforeAfterSlider = () => {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Labels */}
-      <div className="absolute top-6 left-0 right-0 z-20 flex justify-between px-6 pointer-events-none">
-        <div className="text-destructive font-semibold text-sm uppercase tracking-wide">
-          Före
-        </div>
-        <div className="text-accent font-semibold text-sm uppercase tracking-wide">
-          Efter
+      {/* Dynamic Label in Center */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+        <div 
+          className={`font-semibold text-sm uppercase tracking-wide transition-colors duration-300 ${
+            sliderPosition < 50 ? "text-destructive" : "text-accent"
+          }`}
+        >
+          {sliderPosition < 50 ? "Före" : "Efter"}
         </div>
       </div>
 
