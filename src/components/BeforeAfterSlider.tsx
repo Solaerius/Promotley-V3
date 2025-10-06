@@ -188,10 +188,8 @@ const BeforeAfterSlider = () => {
         className="absolute top-0 bottom-0 z-30"
         style={{ left: `${sliderPosition}%` }}
       >
-        {/* Horizontal lines extending from left to right */}
-        <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none">
-          <div className="w-[200vw] h-1 bg-primary shadow-glow"></div>
-        </div>
+        {/* Vertical line extending from top to bottom */}
+        <div className="absolute top-0 bottom-12 left-1/2 -translate-x-1/2 w-1 bg-primary shadow-glow pointer-events-none"></div>
         
         {/* Handle circle at bottom - draggable */}
         <div 
