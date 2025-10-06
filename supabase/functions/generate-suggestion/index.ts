@@ -25,6 +25,10 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Capture client information for security logging
+    const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
@@ -35,7 +39,9 @@ Deno.serve(async (req) => {
       await supabaseAdmin.rpc('log_security_event', {
         _user_id: null,
         _event_type: 'unauthorized_ai_request',
-        _event_details: { error: 'Missing auth header' }
+        _event_details: { error: 'Missing auth header' },
+        _ip_address: clientIp,
+        _user_agent: userAgent,
       });
       return new Response(JSON.stringify({ error: "Ingen autentisering" }), {
         status: 401,
@@ -58,7 +64,9 @@ Deno.serve(async (req) => {
       await supabaseAdmin.rpc('log_security_event', {
         _user_id: null,
         _event_type: 'unauthorized_ai_request',
-        _event_details: { error: 'Invalid auth token' }
+        _event_details: { error: 'Invalid auth token' },
+        _ip_address: clientIp,
+        _user_agent: userAgent,
       });
       return new Response(JSON.stringify({ error: "Ogiltig användare" }), {
         status: 401,
@@ -290,7 +298,9 @@ Håll tonen professionell men ungdomlig, perfekt för UF-företag.`;
       await supabaseAdmin.rpc('log_security_event', {
         _user_id: null,
         _event_type: 'ai_generation_failed',
-        _event_details: { error: error instanceof Error ? error.message : 'Unknown error' }
+        _event_details: { error: error instanceof Error ? error.message : 'Unknown error' },
+        _ip_address: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+        _user_agent: req.headers.get('user-agent') || 'unknown',
       });
     } catch (logError) {
       console.error('Failed to log security event:', logError);

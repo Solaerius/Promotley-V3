@@ -53,6 +53,10 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Capture client information for security logging
+    const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+    
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
     const stateToken = url.searchParams.get('state');
@@ -82,7 +86,9 @@ Deno.serve(async (req) => {
       await supabase.rpc('log_security_event', {
         _user_id: null,
         _event_type: 'oauth_invalid_state',
-        _event_details: { provider, error: 'Invalid or expired state token' }
+        _event_details: { provider, error: 'Invalid or expired state token' },
+        _ip_address: clientIp,
+        _user_agent: userAgent,
       });
       throw new Error('Invalid or expired state token');
     }
@@ -184,7 +190,9 @@ Deno.serve(async (req) => {
       await supabase.rpc('log_security_event', {
         _user_id: userId,
         _event_type: 'oauth_token_storage_failed',
-        _event_details: { provider, error: tokenError.message }
+        _event_details: { provider, error: tokenError.message },
+        _ip_address: clientIp,
+        _user_agent: userAgent,
       });
       throw tokenError;
     }
@@ -214,7 +222,9 @@ Deno.serve(async (req) => {
     await supabase.rpc('log_security_event', {
       _user_id: userId,
       _event_type: 'oauth_connection_success',
-      _event_details: { provider, account_id: accountId }
+      _event_details: { provider, account_id: accountId },
+      _ip_address: clientIp,
+      _user_agent: userAgent,
     });
 
     // Clean up expired states
@@ -244,7 +254,9 @@ Deno.serve(async (req) => {
       await supabase.rpc('log_security_event', {
         _user_id: null,
         _event_type: 'oauth_callback_failed',
-        _event_details: { error: errorMessage }
+        _event_details: { error: errorMessage },
+        _ip_address: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+        _user_agent: req.headers.get('user-agent') || 'unknown',
       });
     } catch (logError) {
       console.error('Failed to log security event:', logError);

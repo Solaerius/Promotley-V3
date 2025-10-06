@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.get-meta-app-id]
 verify_jwt = true
+
+[functions.cleanup-oauth-states]
+verify_jwt = false
