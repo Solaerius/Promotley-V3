@@ -5,40 +5,40 @@ import { Link } from "react-router-dom";
 
 const plans = [
   {
-    name: "Promotley Pro",
+    name: "Start",
     price: "49",
     credits: "100",
     features: [
-      "100 AI-förslag per månad",
+      "100 krediter per månad",
       "Analys av alla plattformar",
-      "AI-highlightade insikter",
-      "Hashtag-förslag",
-      "Optimal postningstid",
+      "AI-genererade förslag",
+      "Hashtag-optimering",
+      "Bästa postningstider",
     ],
     popular: false,
   },
   {
-    name: "Pro XL",
+    name: "Growth",
     price: "99",
     credits: "300",
     features: [
-      "300 AI-förslag per månad",
-      "Allt från Pro",
+      "300 krediter per månad",
+      "Allt från Start",
       "Prioriterad support",
       "Avancerad analys",
-      "Historisk data export",
+      "Historisk data",
     ],
     popular: true,
   },
   {
-    name: "Pro Unlimited",
+    name: "Pro",
     price: "199",
     credits: "∞",
     features: [
-      "Obegränsade AI-förslag",
-      "Allt från Pro XL",
+      "Obegränsade krediter",
+      "Allt från Growth",
       "Dedikerad support",
-      "Anpassad AI-träning",
+      "Anpassad AI-modell",
       "API-tillgång",
     ],
     popular: false,
@@ -47,15 +47,18 @@ const plans = [
 
 const Pricing = () => {
   return (
-    <section className="py-24 px-4 bg-gradient-hero">
+    <section id="pricing" className="py-24 px-4 bg-background font-poppins">
       <div className="container mx-auto">
         {/* Section header */}
         <div className="max-w-3xl mx-auto text-center mb-16 space-y-4">
           <h2 className="text-4xl md:text-5xl font-bold">
-            Välj din plan
+            Enkla priser,{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-primary">
+              kraftfulla resultat
+            </span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            Börja gratis med 1 AI-förslag, uppgradera när du är redo
+            Välj den plan som passar ditt företags tillväxtfas
           </p>
         </div>
 
@@ -64,10 +67,10 @@ const Pricing = () => {
           {plans.map((plan, index) => (
             <Card
               key={index}
-              className={`p-8 relative ${
+              className={`p-8 relative bg-card/50 backdrop-blur-md transition-all duration-300 hover:-translate-y-2 ${
                 plan.popular
-                  ? "border-primary shadow-glow scale-105"
-                  : "border-border/50"
+                  ? "border-2 border-primary shadow-glow scale-105"
+                  : "border-2 border-border/50 hover:border-primary/30"
               }`}
             >
               {plan.popular && (
@@ -122,8 +125,8 @@ const Pricing = () => {
         </div>
 
         {/* Bottom note */}
-        <p className="text-center text-muted-foreground mt-12">
-          Alla planer inkluderar 1 gratis AI-förslag för att testa. Ingen betalmetod krävs.
+        <p className="text-center text-muted-foreground mt-12 text-lg">
+          ✨ Börja gratis med 1 AI-förslag · Ingen betalmetod krävs · Avsluta när du vill
         </p>
       </div>
     </section>
