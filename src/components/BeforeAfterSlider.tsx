@@ -190,8 +190,8 @@ const BeforeAfterSlider = () => {
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
       >
-        {/* Handle circle */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-primary shadow-elegant flex items-center justify-center">
+        {/* Handle circle - positioned at bottom */}
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-primary shadow-elegant flex items-center justify-center">
           <div className="flex gap-1">
             <div className="w-0.5 h-4 bg-white"></div>
             <div className="w-0.5 h-4 bg-white"></div>
