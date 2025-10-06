@@ -47,7 +47,7 @@ const ProblemSection = () => {
               
               <ul className="space-y-4">
                 {[
-                  "Personlig postningsstrategi (tid & frekvens)",
+                  "Personlig postningsstrategi",
                   "Budgetanpassad innehållsplan",
                   "Skräddarsytt för din bransch och målgrupp",
                   "Komplett innehållskalender varje vecka",
