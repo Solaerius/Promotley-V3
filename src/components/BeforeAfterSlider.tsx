@@ -185,16 +185,20 @@ const BeforeAfterSlider = () => {
 
       {/* Slider Handle */}
       <div
-        className="absolute top-0 bottom-0 z-30 cursor-ew-resize"
+        className="absolute top-0 bottom-0 z-30"
         style={{ left: `${sliderPosition}%` }}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
       >
-        {/* Vertical line from top to bottom */}
-        <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-1 bg-primary shadow-glow"></div>
+        {/* Horizontal lines extending from left to right */}
+        <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none">
+          <div className="w-[200vw] h-1 bg-primary shadow-glow"></div>
+        </div>
         
-        {/* Handle circle at bottom */}
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-primary shadow-elegant flex items-center justify-center">
+        {/* Handle circle at bottom - draggable */}
+        <div 
+          className="absolute bottom-12 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-primary shadow-elegant flex items-center justify-center cursor-ew-resize"
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+        >
           <div className="flex gap-1">
             <div className="w-0.5 h-4 bg-white"></div>
             <div className="w-0.5 h-4 bg-white"></div>
