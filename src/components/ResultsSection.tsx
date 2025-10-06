@@ -1,6 +1,5 @@
 import { TrendingUp, Users, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import BeforeAfterSlider from "./BeforeAfterSlider";
 
 const stats = [
   {
@@ -64,12 +63,6 @@ const ResultsSection = () => {
           })}
         </div>
 
-        {/* Interactive Before/After Slider */}
-        <div className="max-w-4xl mx-auto">
-          <Card className="relative overflow-hidden bg-white/10 backdrop-blur-md border-2 border-white/20">
-            <BeforeAfterSlider />
-          </Card>
-        </div>
       </div>
     </section>
   );
