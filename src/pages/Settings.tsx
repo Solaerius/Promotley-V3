@@ -6,11 +6,25 @@ import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDownloadData = () => {
     toast({
@@ -27,11 +41,45 @@ const Settings = () => {
   };
 
   const handleDeleteAccount = () => {
-    toast({
-      title: "Bekräftelse krävs",
-      description: "Är du säker? Denna åtgärd kan inte ångras.",
-      variant: "destructive",
-    });
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteAccount = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Fel",
+        description: "Ingen användare inloggad",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      // Call the soft_delete_user_account RPC function
+      const { error } = await supabase.rpc('soft_delete_user_account', {
+        _user_id: user.id
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Konto raderat",
+        description: "Ditt konto har markerats för radering. Du har 30 dagar att ångra dig.",
+      });
+
+      // Sign out the user
+      await signOut();
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast({
+        title: "Fel vid radering",
+        description: "Kunde inte radera kontot. Försök igen senare.",
+        variant: "destructive",
+      });
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -201,6 +249,30 @@ const Settings = () => {
           </Card>
         </div>
       </div>
+
+      {/* Delete Account Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Är du helt säker?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Denna åtgärd kommer att radera ditt konto permanent efter 30 dagar.
+              Under dessa 30 dagar kan du kontakta oss för att återställa ditt konto.
+              All din data, inklusive anslutna konton, AI-förslag och statistik kommer att raderas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteAccount}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Raderar..." : "Radera mitt konto"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
