@@ -14,36 +14,36 @@ const Hero = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-card/80 backdrop-blur-sm rounded-full border shadow-elegant">
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium">För UF-företag som vill växa snabbare</span>
+            <span className="text-sm font-medium">AI-driven marknadsföring för UF-företag</span>
           </div>
 
           {/* Heading */}
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
-            Få fler kunder med{" "}
+            Väx snabbare med{" "}
             <span className="bg-gradient-primary bg-clip-text text-transparent">
-              smart AI
+              AI-analys
             </span>
           </h1>
 
           {/* Subheading */}
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Dubbla ditt engagemang och nå rätt målgrupp. Få personliga förslag som faktiskt 
-            ökar din försäljning och hjälper ditt UF-företag växa.
+            Promotley analyserar dina sociala medier och ger dig personliga AI-förslag 
+            för att maximera engagemang och tillväxt.
           </p>
 
           {/* Features */}
           <div className="flex flex-wrap justify-center gap-6 pt-4">
             <div className="flex items-center gap-2 text-muted-foreground">
               <TrendingUp className="w-5 h-5 text-accent" />
-              <span>Dubbla ditt engagemang</span>
+              <span>Smart statistikanalys</span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
               <Sparkles className="w-5 h-5 text-accent" />
-              <span>Nå fler kunder</span>
+              <span>AI-genererade förslag</span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
               <Zap className="w-5 h-5 text-accent" />
-              <span>Spara 5+ timmar/vecka</span>
+              <span>Automatiserade insikter</span>
             </div>
           </div>
 
