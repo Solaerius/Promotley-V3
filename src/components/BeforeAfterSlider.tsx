@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Instagram } from "lucide-react";
 
 const BeforeAfterSlider = () => {
   const [sliderPosition, setSliderPosition] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [isManuallyInteracted, setIsManuallyInteracted] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const beforeStats = {
@@ -25,43 +25,41 @@ const BeforeAfterSlider = () => {
     ]
   };
 
-  // Auto-animation effect
+  // Scroll detection and initial animation
   useEffect(() => {
-    if (isDragging || isManuallyInteracted) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasAnimated) {
+            // Quick animation to show it's interactive
+            let frame = 0;
+            const animateOnce = setInterval(() => {
+              frame++;
+              if (frame <= 15) {
+                setSliderPosition(frame * 6.67); // Go to 100% in 15 frames
+              } else if (frame <= 30) {
+                setSliderPosition((30 - frame) * 6.67); // Go back to 0% in 15 frames
+              } else {
+                clearInterval(animateOnce);
+                setSliderPosition(0);
+                setHasAnimated(true);
+              }
+            }, 30);
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
 
-    let direction = 1;
-    let currentPos = sliderPosition;
-
-    const animate = setInterval(() => {
-      currentPos += direction * 0.5;
-      
-      if (currentPos >= 100) {
-        currentPos = 100;
-        direction = -1;
-      } else if (currentPos <= 0) {
-        currentPos = 0;
-        direction = 1;
-      }
-
-      setSliderPosition(currentPos);
-    }, 50);
-
-    return () => clearInterval(animate);
-  }, [isDragging, isManuallyInteracted]);
-
-  // Reset manual interaction after 3 seconds of no dragging
-  useEffect(() => {
-    if (!isDragging && isManuallyInteracted) {
-      const timeout = setTimeout(() => {
-        setIsManuallyInteracted(false);
-      }, 3000);
-      return () => clearTimeout(timeout);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
     }
-  }, [isDragging, isManuallyInteracted]);
+
+    return () => observer.disconnect();
+  }, [hasAnimated]);
 
   const handleMouseDown = () => {
     setIsDragging(true);
-    setIsManuallyInteracted(true);
   };
 
   const handleMouseUp = () => {
@@ -79,7 +77,6 @@ const BeforeAfterSlider = () => {
 
   const handleTouchStart = () => {
     setIsDragging(true);
-    setIsManuallyInteracted(true);
   };
 
   const handleTouchEnd = () => {
@@ -98,16 +95,15 @@ const BeforeAfterSlider = () => {
   return (
     <div 
       ref={containerRef}
-      className="relative overflow-hidden select-none"
+      className="relative overflow-hidden select-none bg-card rounded-lg"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ minHeight: "400px" }}
     >
       {/* Labels */}
-      <div className="absolute top-4 left-0 right-0 z-20 flex justify-between px-8 pointer-events-none">
+      <div className="absolute top-6 left-0 right-0 z-20 flex justify-between px-6 pointer-events-none">
         <div className="text-destructive font-semibold text-sm uppercase tracking-wide">
           Före
         </div>
@@ -116,13 +112,25 @@ const BeforeAfterSlider = () => {
         </div>
       </div>
 
-      {/* Before Stats (Right side - always visible) */}
-      <div className="absolute inset-0 p-8 pt-16">
+      {/* Before Stats Card - Full Dashboard style */}
+      <div className="absolute inset-0 p-6">
+        {/* Platform header */}
+        <div className="flex items-center gap-3 mb-6 mt-8">
+          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
+            <Instagram className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">Instagram</h2>
+            <p className="text-sm text-muted-foreground">Senaste 30 dagarna</p>
+          </div>
+        </div>
+
+        {/* Metrics grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {beforeStats.metrics.map((metric, index) => (
             <div key={index} className="space-y-2">
-              <p className="text-sm text-white/60">{metric.label}</p>
-              <p className="text-2xl font-bold text-white">{metric.value}</p>
+              <p className="text-sm text-muted-foreground">{metric.label}</p>
+              <p className="text-2xl font-bold">{metric.value}</p>
               <div className="flex items-center gap-1">
                 <TrendingDown className="w-4 h-4 text-destructive" />
                 <span className="text-sm font-medium text-destructive">
@@ -134,18 +142,30 @@ const BeforeAfterSlider = () => {
         </div>
       </div>
 
-      {/* After Stats (Left side - revealed by slider) */}
+      {/* After Stats Card - Revealed by slider */}
       <div 
-        className="absolute inset-0 p-8 pt-16"
+        className="absolute inset-0 p-6 bg-card"
         style={{
           clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
         }}
       >
+        {/* Platform header */}
+        <div className="flex items-center gap-3 mb-6 mt-8">
+          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
+            <Instagram className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">Instagram</h2>
+            <p className="text-sm text-muted-foreground">Senaste 30 dagarna</p>
+          </div>
+        </div>
+
+        {/* Metrics grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {afterStats.metrics.map((metric, index) => (
             <div key={index} className="space-y-2">
-              <p className="text-sm text-white/60">{metric.label}</p>
-              <p className="text-2xl font-bold text-white">{metric.value}</p>
+              <p className="text-sm text-muted-foreground">{metric.label}</p>
+              <p className="text-2xl font-bold">{metric.value}</p>
               <div className="flex items-center gap-1">
                 <TrendingUp className="w-4 h-4 text-accent" />
                 <span className="text-sm font-medium text-accent">
@@ -159,23 +179,23 @@ const BeforeAfterSlider = () => {
 
       {/* Slider Handle */}
       <div
-        className="absolute top-0 bottom-0 w-1 bg-white/80 backdrop-blur-sm z-30 cursor-ew-resize"
+        className="absolute top-0 bottom-0 w-1 bg-primary z-30 cursor-ew-resize shadow-glow"
         style={{ left: `${sliderPosition}%` }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
       >
         {/* Handle circle */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white shadow-glow flex items-center justify-center">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-primary shadow-elegant flex items-center justify-center">
           <div className="flex gap-1">
-            <div className="w-0.5 h-4 bg-gray-400"></div>
-            <div className="w-0.5 h-4 bg-gray-400"></div>
+            <div className="w-0.5 h-4 bg-white"></div>
+            <div className="w-0.5 h-4 bg-white"></div>
           </div>
         </div>
       </div>
 
       {/* Helper Text */}
-      <div className="absolute bottom-4 left-0 right-0 text-center text-white/60 text-sm pointer-events-none z-20">
-        {isManuallyInteracted ? "Släpp för att fortsätta automatisk animation" : "Dra slidern eller vänta för automatisk animation"}
+      <div className="absolute bottom-4 left-0 right-0 text-center text-muted-foreground text-sm pointer-events-none z-20">
+        Dra slidern för att se förbättringen
       </div>
     </div>
   );
