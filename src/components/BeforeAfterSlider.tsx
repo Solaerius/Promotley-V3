@@ -185,21 +185,21 @@ const BeforeAfterSlider = () => {
 
       {/* Slider Handle */}
       <div
-        className="absolute bottom-12 z-30 cursor-ew-resize"
+        className="absolute top-0 bottom-0 z-30 cursor-ew-resize"
         style={{ left: `${sliderPosition}%` }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
       >
-        {/* Handle circle with integrated vertical lines */}
-        <div className="relative left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-primary shadow-elegant flex items-center justify-center">
+        {/* Vertical line from top to bottom */}
+        <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-1 bg-primary shadow-glow"></div>
+        
+        {/* Handle circle at bottom */}
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-primary shadow-elegant flex items-center justify-center">
           <div className="flex gap-1">
             <div className="w-0.5 h-4 bg-white"></div>
             <div className="w-0.5 h-4 bg-white"></div>
           </div>
         </div>
-        
-        {/* Vertical line extending upward */}
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-1 h-[calc(100vh-200px)] max-h-[300px] bg-primary pointer-events-none"></div>
       </div>
 
       {/* Helper Text */}
