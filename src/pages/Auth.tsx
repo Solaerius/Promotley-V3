@@ -14,6 +14,14 @@ import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import PasswordRequirements from "@/components/PasswordRequirements";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -29,6 +37,9 @@ const Auth = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const { toast } = useToast();
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
@@ -134,6 +145,47 @@ const Auth = () => {
     }
   };
 
+  const handlePasswordReset = async () => {
+    setIsResetting(true);
+    try {
+      if (!resetEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resetEmail)) {
+        toast({
+          title: "Ogiltig e-post",
+          description: "Ange en giltig e-postadress",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) {
+        toast({
+          title: "Fel",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Email skickat!",
+          description: "Kolla din inkorg för att återställa ditt lösenord",
+        });
+        setIsResetDialogOpen(false);
+        setResetEmail("");
+      }
+    } catch (error) {
+      toast({
+        title: "Fel",
+        description: "Något gick fel. Försök igen.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-hero px-4 py-12">
       <Card className="w-full max-w-md p-8 shadow-elegant">
@@ -232,6 +284,49 @@ const Auth = () => {
               <p className="text-sm text-destructive">{errors.password}</p>
             )}
             {!isLogin && <PasswordRequirements password={password} />}
+            
+            {isLogin && (
+              <div className="text-right">
+                <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+                  <DialogTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      Glömt lösenord?
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Återställ lösenord</DialogTitle>
+                      <DialogDescription>
+                        Ange din e-postadress så skickar vi en länk för att återställa ditt lösenord
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="resetEmail">E-post</Label>
+                        <Input
+                          id="resetEmail"
+                          type="email"
+                          placeholder="namn@foretagsnamn.se"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                        />
+                      </div>
+                      <Button
+                        onClick={handlePasswordReset}
+                        disabled={isResetting}
+                        variant="gradient"
+                        className="w-full"
+                      >
+                        {isResetting ? "Skickar..." : "Skicka återställningslänk"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            )}
           </div>
 
           {!isLogin && (
