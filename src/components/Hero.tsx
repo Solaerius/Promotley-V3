@@ -57,7 +57,7 @@ const Hero = () => {
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="text-base md:text-lg px-6 py-5 md:px-8 md:py-6 border-2 border-white/40 text-white hover:bg-white/10 backdrop-blur-sm hover:scale-105 transition-all duration-300 font-semibold w-full"
+                className="text-base md:text-lg px-6 py-5 md:px-8 md:py-6 border-2 border-white/40 !text-white hover:bg-white/10 backdrop-blur-sm hover:scale-105 transition-all duration-300 font-semibold w-full"
               >
                 Se hur det funkar
               </Button>
