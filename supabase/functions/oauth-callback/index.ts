@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
       .select('*')
       .eq('state_token', stateToken)
       .eq('consumed', false)
-      .single();
+      .maybeSingle();
 
     if (stateError || !stateData) {
       console.error('Invalid state token - not found in database:', { 
@@ -171,11 +171,18 @@ Deno.serve(async (req) => {
     } else if (provider === 'tiktok') {
       const tiktokClientKey = Deno.env.get('TIKTOK_CLIENT_KEY');
       const tiktokClientSecret = Deno.env.get('TIKTOK_CLIENT_SECRET');
-      const redirectUri = `${supabaseUrl}/functions/v1/oauth-callback?provider=tiktok`;
+      const redirectUri = `${supabaseUrl}/functions/v1/oauth-callback`;
 
       if (!tiktokClientKey || !tiktokClientSecret) {
         throw new Error('TikTok app credentials not configured');
       }
+
+      console.log('TikTok token exchange - Request params:', {
+        client_key: tiktokClientKey,
+        grant_type: 'authorization_code',
+        redirect_uri: redirectUri,
+        hasCode: !!code
+      });
 
       // Exchange code for token
       const tokenResponse = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
@@ -192,18 +199,47 @@ Deno.serve(async (req) => {
         }),
       });
 
+      const responseText = await tokenResponse.text();
+      console.log('TikTok token response status:', tokenResponse.status);
+      console.log('TikTok token response body:', responseText);
+
       if (!tokenResponse.ok) {
-        const error = await tokenResponse.text();
-        console.error('TikTok token exchange failed:', error);
-        throw new Error('Failed to exchange code for token');
+        console.error('TikTok token exchange failed:', {
+          status: tokenResponse.status,
+          body: responseText
+        });
+        throw new Error(`Failed to exchange code for token: ${responseText}`);
       }
 
-      const tokenData = await tokenResponse.json();
-      accessToken = tokenData.data.access_token;
-      refreshToken = tokenData.data.refresh_token || null;
-      expiresIn = tokenData.data.expires_in;
+      let tokenData;
+      try {
+        tokenData = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse TikTok token response:', parseError);
+        throw new Error('Invalid JSON response from TikTok');
+      }
 
-      console.log('TikTok access token obtained, expires in:', expiresIn);
+      console.log('TikTok token data structure:', JSON.stringify(tokenData, null, 2));
+
+      // TikTok API returns data in different formats - handle both
+      if (tokenData.data && tokenData.data.access_token) {
+        accessToken = tokenData.data.access_token;
+        refreshToken = tokenData.data.refresh_token || null;
+        expiresIn = tokenData.data.expires_in;
+      } else if (tokenData.access_token) {
+        accessToken = tokenData.access_token;
+        refreshToken = tokenData.refresh_token || null;
+        expiresIn = tokenData.expires_in;
+      } else {
+        console.error('TikTok access_token not found in response:', tokenData);
+        throw new Error('access_token missing from TikTok response');
+      }
+
+      console.log('TikTok access token obtained successfully:', {
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        expiresIn
+      });
 
       // Get user info
       const userResponse = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name', {
@@ -213,15 +249,40 @@ Deno.serve(async (req) => {
         },
       });
 
+      const userResponseText = await userResponse.text();
+      console.log('TikTok user info response:', {
+        status: userResponse.status,
+        body: userResponseText
+      });
+
       if (!userResponse.ok) {
-        throw new Error('Failed to get TikTok user info');
+        console.error('Failed to get TikTok user info:', userResponseText);
+        throw new Error(`Failed to get TikTok user info: ${userResponseText}`);
       }
 
-      const userData = await userResponse.json();
-      accountId = userData.data.user.open_id;
-      username = userData.data.user.display_name;
+      let userData;
+      try {
+        userData = JSON.parse(userResponseText);
+      } catch (parseError) {
+        console.error('Failed to parse TikTok user response:', parseError);
+        throw new Error('Invalid JSON response from TikTok user endpoint');
+      }
 
-      console.log('TikTok user info retrieved:', { accountId, username });
+      console.log('TikTok user data structure:', JSON.stringify(userData, null, 2));
+
+      // Handle different response formats
+      if (userData.data && userData.data.user) {
+        accountId = userData.data.user.open_id;
+        username = userData.data.user.display_name;
+      } else if (userData.user) {
+        accountId = userData.user.open_id;
+        username = userData.user.display_name;
+      } else {
+        console.error('Unexpected TikTok user data structure:', userData);
+        throw new Error('Cannot parse TikTok user info');
+      }
+
+      console.log('TikTok user info retrieved successfully:', { accountId, username });
     } else {
       throw new Error(`Provider ${provider} not supported yet`);
     }
