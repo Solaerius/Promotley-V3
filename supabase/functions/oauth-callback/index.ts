@@ -60,9 +60,8 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
     const stateToken = url.searchParams.get('state');
-    const provider = url.searchParams.get('provider') || 'meta_fb';
 
-    console.log('OAuth callback received:', { provider, hasCode: !!code, hasState: !!stateToken });
+    console.log('OAuth callback received:', { hasCode: !!code, hasState: !!stateToken, fullUrl: req.url });
 
     if (!code || !stateToken) {
       throw new Error('Authorization code or state missing');
@@ -72,31 +71,40 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Validate state token and get user ID
+    // Validate state token and get user ID (don't filter by provider yet - get it from the state)
+    console.log('Looking up state token:', stateToken);
     const { data: stateData, error: stateError } = await supabase
       .from('oauth_states')
       .select('*')
       .eq('state_token', stateToken)
-      .eq('provider', provider)
       .eq('consumed', false)
       .single();
 
     if (stateError || !stateData) {
-      console.error('Invalid state token:', stateError);
+      console.error('Invalid state token - not found in database:', { 
+        error: stateError, 
+        stateToken,
+        errorCode: stateError?.code,
+        errorMessage: stateError?.message 
+      });
       await supabase.rpc('log_security_event', {
         _user_id: null,
         _event_type: 'oauth_invalid_state',
-        _event_details: { provider, error: 'Invalid or expired state token' },
+        _event_details: { error: 'Invalid or expired state token', stateToken },
         _ip_address: clientIp,
         _user_agent: userAgent,
       });
       throw new Error('Invalid or expired state token');
     }
 
+    // Get provider from the state data (not from query params)
+    const provider = stateData.provider;
+    console.log('State validated successfully:', { provider, userId: stateData.user_id });
+
     // Check if state is expired (older than 10 minutes)
     const stateAge = Date.now() - new Date(stateData.created_at).getTime();
     if (stateAge > 10 * 60 * 1000) {
-      console.error('State token expired');
+      console.error('State token expired:', { stateAge: Math.floor(stateAge / 1000), maxAge: 600 });
       throw new Error('State token expired');
     }
 
@@ -107,7 +115,7 @@ Deno.serve(async (req) => {
       .eq('id', stateData.id);
 
     const userId = stateData.user_id;
-    console.log('Validated user ID from state:', userId);
+    console.log('State marked as consumed, proceeding with OAuth for user:', userId);
 
     // Exchange code for access token based on provider
     let accessToken: string;

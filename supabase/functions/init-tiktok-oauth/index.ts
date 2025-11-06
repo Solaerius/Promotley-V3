@@ -87,7 +87,11 @@ serve(async (req) => {
     authUrl.searchParams.set('redirect_uri', redirectUri);
     authUrl.searchParams.set('state', stateToken);
 
-    console.log('TikTok OAuth URL generated successfully');
+    console.log('TikTok OAuth URL generated:', { 
+      redirectUri, 
+      stateToken,
+      authUrl: authUrl.toString() 
+    });
 
     return new Response(
       JSON.stringify({ url: authUrl.toString() }),
