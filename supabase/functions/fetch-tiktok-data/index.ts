@@ -124,10 +124,24 @@ Deno.serve(async (req) => {
 
     if (!userInfoResponse.ok) {
       console.error('Failed to fetch user info');
+      
+      // Check for scope_not_authorized error
+      let errorMessage = 'Failed to fetch user info from TikTok';
+      try {
+        const errorData = JSON.parse(userInfoText);
+        if (errorData.error?.code === 'scope_not_authorized') {
+          errorMessage = 'Du måste reconnecta ditt TikTok-konto med uppdaterade behörigheter. Koppla från och anslut igen.';
+        } else {
+          errorMessage = `${errorMessage}: ${userInfoText}. You may need to reconnect your account.`;
+        }
+      } catch {
+        errorMessage = `${errorMessage}: ${userInfoText}. You may need to reconnect your account.`;
+      }
+      
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: `Failed to fetch user info from TikTok: ${userInfoText}. You may need to reconnect your account.` 
+          error: errorMessage
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );

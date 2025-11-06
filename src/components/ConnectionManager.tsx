@@ -169,13 +169,26 @@ export const ConnectionManager = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { error } = await supabase
+      // Delete connection
+      const { error: connectionError } = await supabase
         .from('connections')
         .delete()
         .eq('user_id', session.user.id)
         .eq('provider', provider as any);
 
-      if (error) throw error;
+      if (connectionError) throw connectionError;
+
+      // Also delete associated tokens
+      const { error: tokenError } = await supabase
+        .from('tokens')
+        .delete()
+        .eq('user_id', session.user.id)
+        .eq('provider', provider as any);
+
+      if (tokenError) {
+        console.error('Error deleting tokens:', tokenError);
+        // Don't throw - connection is already deleted
+      }
 
       toast({
         title: "Frånkopplad",
