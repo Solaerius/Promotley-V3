@@ -221,6 +221,13 @@ Deno.serve(async (req) => {
 
       console.log('TikTok token data structure:', JSON.stringify(tokenData, null, 2));
 
+      // Check if TikTok returned an error
+      if (tokenData.error) {
+        const errorMsg = `TikTok OAuth error: ${tokenData.error}${tokenData.error_description ? ` - ${tokenData.error_description}` : ''}`;
+        console.error(errorMsg, { log_id: tokenData.log_id });
+        throw new Error(errorMsg);
+      }
+
       // TikTok API returns data in different formats - handle both
       if (tokenData.data && tokenData.data.access_token) {
         accessToken = tokenData.data.access_token;
