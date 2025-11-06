@@ -14,6 +14,8 @@ const securityHeaders = {
 };
 
 serve(async (req) => {
+  console.log('🟢 init-tiktok-oauth reached - function is deployed and working');
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }

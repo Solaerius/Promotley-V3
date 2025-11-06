@@ -48,6 +48,8 @@ async function getEncryptionKey(): Promise<CryptoKey> {
 }
 
 Deno.serve(async (req) => {
+  console.log('🔵 OAuth callback reached - function is deployed and working');
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: { ...corsHeaders, ...securityHeaders } });
   }
