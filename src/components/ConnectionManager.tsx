@@ -156,7 +156,7 @@ export const ConnectionManager = () => {
       if (isConnected('tiktok')) {
         toast({
           title: "⚠️ Redan ansluten",
-          description: "TikTok är redan anslutet. Använd 'Reconnect' för att uppdatera behörigheter.",
+          description: "TikTok är redan anslutet. Koppla från och anslut igen för att uppdatera behörigheter.",
           variant: "destructive",
         });
         setLoading(false);
@@ -256,8 +256,27 @@ export const ConnectionManager = () => {
           description: "Du måste vara inloggad för att ansluta konton",
           variant: "destructive",
         });
+        setLoading(false);
         return;
       }
+
+      // First delete old tokens to ensure fresh OAuth with new scopes
+      const { error: deleteError } = await supabase
+        .from('tokens')
+        .delete()
+        .eq('user_id', session.user.id)
+        .eq('provider', 'tiktok');
+
+      if (deleteError) {
+        console.error('Failed to delete old TikTok tokens:', deleteError);
+        // Continue anyway - the token will be updated via upsert
+      }
+
+      toast({
+        title: "🔄 Återansluter...",
+        description: "Godkänn behörigheterna på TikTok för att ge tillgång till statistik och videor",
+        duration: 3000,
+      });
 
       // Call edge function to initiate TikTok OAuth with updated scopes
       const { data, error } = await supabase.functions.invoke('init-tiktok-oauth', {

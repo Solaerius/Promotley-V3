@@ -212,6 +212,10 @@ Deno.serve(async (req) => {
       }
 
       console.log("TikTok token data structure:", JSON.stringify(tokenData, null, 2));
+      
+      // Log scopes for debugging
+      const grantedScopes = tokenData.data?.scope || tokenData.scope || 'unknown';
+      console.log("🔑 TikTok granted scopes:", grantedScopes);
 
       // Check if TikTok returned an error
       if (tokenData.error) {
