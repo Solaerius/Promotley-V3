@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Facebook, CheckCircle2, Link as LinkIcon, Music } from "lucide-react";
+import { Facebook, CheckCircle2, Link as LinkIcon, Music, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Connection {
@@ -195,7 +195,8 @@ export const ConnectionManager = () => {
         description: `${provider} har kopplats från ditt konto`,
       });
 
-      loadConnections();
+      // Reload connections to update UI
+      await loadConnections();
     } catch (error) {
       console.error('Error disconnecting:', error);
       toast({
@@ -203,6 +204,43 @@ export const ConnectionManager = () => {
         description: "Kunde inte koppla från kontot",
         variant: "destructive",
       });
+    }
+  };
+
+  const reconnectTikTok = async () => {
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Inte inloggad",
+          description: "Du måste vara inloggad för att ansluta konton",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Call edge function to initiate TikTok OAuth with updated scopes
+      const { data, error } = await supabase.functions.invoke('init-tiktok-oauth', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error || !data?.url) {
+        throw new Error('Could not initialize TikTok OAuth');
+      }
+
+      // Redirect to TikTok OAuth
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Error reconnecting TikTok:', error);
+      toast({
+        title: "Fel vid anslutning",
+        description: "Kunde inte starta TikTok reconnect",
+        variant: "destructive",
+      });
+      setLoading(false);
     }
   };
 
@@ -295,7 +333,17 @@ export const ConnectionManager = () => {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={reconnectTikTok}
+                disabled={loading}
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Reconnect
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => disconnectProvider('tiktok')}
+                disabled={loading}
               >
                 Koppla från
               </Button>
