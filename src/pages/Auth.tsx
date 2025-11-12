@@ -46,17 +46,61 @@ const Auth = () => {
 
   // Handle OAuth callback and redirect if logged in
   useEffect(() => {
-    // Check for OAuth hash fragments in URL
     const handleOAuthCallback = async () => {
+      // Check both hash fragments and query params
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
+      const queryParams = new URLSearchParams(window.location.search);
       
-      if (accessToken) {
-        // OAuth callback detected, wait for session to be established
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          navigate("/dashboard");
-        }
+      const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+      const code = queryParams.get('code');
+      
+      if (accessToken || code) {
+        console.log('OAuth callback detected, waiting for session...');
+        
+        // Give Supabase time to process the callback
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        const checkSession = async () => {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (session?.user) {
+            console.log('Session established, redirecting to dashboard');
+            navigate("/dashboard");
+            return true;
+          }
+          
+          if (error) {
+            console.error('Session error:', error);
+            toast({
+              title: "Inloggning misslyckades",
+              description: "Kunde inte hämta session från Google. Försök igen.",
+              variant: "destructive",
+            });
+            return true;
+          }
+          
+          return false;
+        };
+        
+        // Retry mechanism
+        const interval = setInterval(async () => {
+          attempts++;
+          const success = await checkSession();
+          
+          if (success || attempts >= maxAttempts) {
+            clearInterval(interval);
+            if (attempts >= maxAttempts) {
+              toast({
+                title: "Timeout",
+                description: "Kunde inte slutföra inloggning. Försök igen.",
+                variant: "destructive",
+              });
+            }
+          }
+        }, 500); // Check every 500ms
+        
+        return () => clearInterval(interval);
       } else if (user) {
         // Regular redirect for already logged in users
         navigate("/dashboard");
@@ -64,7 +108,7 @@ const Auth = () => {
     };
 
     handleOAuthCallback();
-  }, [user, navigate]);
+  }, [navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
