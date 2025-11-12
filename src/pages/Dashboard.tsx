@@ -106,44 +106,90 @@ const Dashboard = () => {
   }
 
   // TikTok (real data)
-  if (isConnected('tiktok') && tiktokData.user && tiktokData.stats) {
-    stats.push({
-      platform: "TikTok",
-      icon: Music2,
-      color: "from-cyan-500 to-pink-500",
-      username: tiktokData.user.display_name,
-      metrics: [
-        { 
-          label: "Följare", 
-          value: formatNumber(tiktokData.user.follower_count || 0), 
-          change: "", 
-          trending: "neutral" as const
-        },
-        { 
-          label: "Visningar", 
-          value: formatNumber(tiktokData.stats.totalViews), 
-          change: "", 
-          trending: "neutral" as const
-        },
-        { 
-          label: "Likes", 
-          value: formatNumber(tiktokData.stats.totalLikes), 
-          change: "", 
-          trending: "neutral" as const
-        },
-        { 
-          label: "Engagemang", 
-          value: tiktokData.stats.avgEngagementRate + "%", 
-          change: "", 
-          trending: "neutral" as const
-        },
-      ],
-      aiInsight: tiktokData.stats.totalViews > 0 ? {
-        metric: "Engagemang",
-        message: `Du har ${tiktokData.stats.videoCount} videor med totalt ${formatNumber(tiktokData.stats.totalViews)} visningar!`,
-        type: "success" as const
-      } : undefined
-    });
+  if (isConnected('tiktok')) {
+    // Check if there's a scope error
+    const hasScopeError = tiktokData.error?.message?.includes('saknar nödvändiga behörigheter') || 
+                          tiktokData.error?.message?.includes('scope_not_authorized');
+    
+    if (hasScopeError) {
+      // Show limited access warning
+      stats.push({
+        platform: "TikTok",
+        icon: Music2,
+        color: "from-cyan-500 to-pink-500",
+        username: "Begränsad åtkomst",
+        metrics: [
+          { 
+            label: "Status", 
+            value: "⚠️ Begränsad", 
+            change: "", 
+            trending: "neutral" as const
+          },
+          { 
+            label: "Behörigheter", 
+            value: "Ofullständiga", 
+            change: "", 
+            trending: "down" as const
+          },
+          { 
+            label: "Åtgärd", 
+            value: "Koppla om", 
+            change: "", 
+            trending: "neutral" as const
+          },
+          { 
+            label: "API-typ", 
+            value: "Login Kit", 
+            change: "", 
+            trending: "neutral" as const
+          },
+        ],
+        aiInsight: {
+          metric: "Behörigheter",
+          message: "För full statistikåtkomst behöver du Content Posting API-behörigheter från TikTok. Koppla från och anslut igen, eller ansök om video.query och video.data scopes i TikTok Developer Portal.",
+          type: "suggestion" as const
+        }
+      });
+    } else if (tiktokData.user && tiktokData.stats) {
+      // Show full data
+      stats.push({
+        platform: "TikTok",
+        icon: Music2,
+        color: "from-cyan-500 to-pink-500",
+        username: tiktokData.user.display_name,
+        metrics: [
+          { 
+            label: "Följare", 
+            value: formatNumber(tiktokData.user.follower_count || 0), 
+            change: "", 
+            trending: "neutral" as const
+          },
+          { 
+            label: "Visningar", 
+            value: formatNumber(tiktokData.stats.totalViews), 
+            change: "", 
+            trending: "neutral" as const
+          },
+          { 
+            label: "Likes", 
+            value: formatNumber(tiktokData.stats.totalLikes), 
+            change: "", 
+            trending: "neutral" as const
+          },
+          { 
+            label: "Engagemang", 
+            value: tiktokData.stats.avgEngagementRate + "%", 
+            change: "", 
+            trending: "neutral" as const
+          },
+        ],
+        aiInsight: tiktokData.stats.totalViews > 0 ? {
+          metric: "Engagemang",
+          message: `Du har ${tiktokData.stats.videoCount} videor med totalt ${formatNumber(tiktokData.stats.totalViews)} visningar!`,
+          type: "success" as const
+        } : undefined
+      });
+    }
   }
 
   // Facebook (real data)

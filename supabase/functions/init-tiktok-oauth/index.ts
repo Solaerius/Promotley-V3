@@ -78,9 +78,12 @@ serve(async (req) => {
 
     console.log('State token stored successfully');
 
-    // Build TikTok authorization URL
+    // Build TikTok authorization URL - use exact redirect URI without extra parameters
     const redirectUri = `${supabaseUrl}/functions/v1/oauth-callback`;
-    const scope = 'user.info.basic,user.info.stats,video.list';
+    
+    // Request comprehensive scopes for Content Posting API
+    // These scopes enable full functionality including video data and statistics
+    const scope = 'user.info.basic,user.info.profile,user.info.stats,video.list,video.query,video.data';
     
     const authUrl = new URL('https://www.tiktok.com/v2/auth/authorize/');
     authUrl.searchParams.set('client_key', tiktokClientKey);

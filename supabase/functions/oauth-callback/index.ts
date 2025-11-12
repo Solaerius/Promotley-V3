@@ -115,6 +115,8 @@ Deno.serve(async (req) => {
     let expiresIn: number | null = null;
     let accountId: string;
     let username: string | null = null;
+    let grantedScopesString = '';
+    let missingOptionalScopes: string[] = [];
 
     if (provider === "meta_fb") {
       const metaAppId = Deno.env.get("META_APP_ID");
@@ -213,15 +215,57 @@ Deno.serve(async (req) => {
 
       console.log("TikTok token data structure:", JSON.stringify(tokenData, null, 2));
       
-      // Log scopes for debugging
-      const grantedScopes = tokenData.data?.scope || tokenData.scope || 'unknown';
-      console.log("🔑 TikTok granted scopes:", grantedScopes);
-
       // Check if TikTok returned an error
       if (tokenData.error) {
         const errorMsg = `TikTok OAuth error: ${tokenData.error}${tokenData.error_description ? ` - ${tokenData.error_description}` : ""}`;
         console.error(errorMsg, { log_id: tokenData.log_id });
         throw new Error(errorMsg);
+      }
+
+      // Verify scopes before proceeding
+      grantedScopesString = tokenData.data?.scope || tokenData.scope || '';
+      console.log('🔍 TikTok granted scopes:', grantedScopesString);
+
+      const grantedScopes = grantedScopesString.split(',').map((s: string) => s.trim());
+      const requiredScopes = ['user.info.basic', 'user.info.stats', 'video.list'];
+      const optionalScopes = ['video.query', 'video.data', 'user.info.profile'];
+
+      const missingRequiredScopes = requiredScopes.filter(s => !grantedScopes.includes(s));
+      missingOptionalScopes = optionalScopes.filter(s => !grantedScopes.includes(s));
+
+      if (missingRequiredScopes.length > 0) {
+        console.error('⚠️ Missing required TikTok scopes:', missingRequiredScopes);
+
+        await supabase.rpc('log_security_event', {
+          _user_id: userId,
+          _event_type: 'tiktok_scope_missing',
+          _event_details: { 
+            missing: missingRequiredScopes,
+            granted: grantedScopes 
+          },
+          _ip_address: clientIp,
+          _user_agent: userAgent,
+        });
+
+        throw new Error(
+          `Insufficient TikTok permissions. Missing required scopes: ${missingRequiredScopes.join(', ')}. ` +
+          'Please reconnect your TikTok account and authorize all requested permissions.'
+        );
+      }
+
+      if (missingOptionalScopes.length > 0) {
+        console.warn('⚠️ Missing optional TikTok scopes (limited functionality):', missingOptionalScopes);
+        
+        await supabase.rpc('log_security_event', {
+          _user_id: userId,
+          _event_type: 'tiktok_limited_scopes',
+          _event_details: { 
+            missing: missingOptionalScopes,
+            granted: grantedScopes 
+          },
+          _ip_address: clientIp,
+          _user_agent: userAgent,
+        });
       }
 
       // TikTok API returns data in different formats - handle both
@@ -296,6 +340,12 @@ Deno.serve(async (req) => {
     const encryptedRefreshToken = refreshToken ? await encryptToken(refreshToken, encryptionKey) : null;
 
     const expiresAt = expiresIn ? new Date(Date.now() + expiresIn * 1000).toISOString() : null;
+
+    // Store granted scopes with token for future reference
+    const scopesMetadata = provider === 'tiktok' ? {
+      granted_scopes: grantedScopesString,
+      has_full_access: !missingOptionalScopes || missingOptionalScopes.length === 0
+    } : null;
 
     const { error: tokenError } = await supabase.from("tokens").upsert(
       {

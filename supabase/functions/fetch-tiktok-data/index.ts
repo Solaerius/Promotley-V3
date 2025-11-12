@@ -177,7 +177,16 @@ Deno.serve(async (req) => {
         logId = errorData.error?.log_id || 'unknown';
         
         if (errorData.error?.code === 'scope_not_authorized') {
-          errorMessage = 'Ditt TikTok-konto saknar nödvändiga behörigheter. Koppla från och anslut kontot igen för att ge åtkomst till statistik och videor.';
+          errorMessage = 'Ditt TikTok-konto saknar nödvändiga behörigheter.\n\n' +
+            'För full funktionalitet krävs följande API-behörigheter:\n' +
+            '• user.info.basic (grundläggande profilinformation)\n' +
+            '• user.info.profile (profildetaljer)\n' +
+            '• user.info.stats (statistik om följare och gillningar)\n' +
+            '• video.list (lista videor)\n' +
+            '• video.query (hämta videodata)\n' +
+            '• video.data (detaljerad videostatistik)\n\n' +
+            'Om du bara har Login Kit (grundläggande behörigheter), behöver du ansöka om Content Posting API i TikTok Developer Portal.\n\n' +
+            'Koppla från och anslut kontot igen för att uppdatera behörigheter.';
         } else if (errorData.error?.code === 'access_token_invalid') {
           errorMessage = 'Token är ogiltig. Koppla från och anslut ditt TikTok-konto igen.';
         } else {
