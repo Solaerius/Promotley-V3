@@ -1,10 +1,39 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
+import { useEffect, useState } from "react";
 
 const Navbar = () => {
+  const [isBubble, setIsBubble] = useState(false);
+
+  useEffect(() => {
+    const sentinel = document.getElementById('header-bubble-sentinel');
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsBubble(entry.isIntersecting);
+      },
+      { rootMargin: '-8px 0px 0px 0px', threshold: 0 }
+    );
+
+    observer.observe(sentinel);
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b">
+    <nav 
+      id="site-header"
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-[550ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] ${
+        isBubble 
+          ? 'mt-2 mx-4 md:mx-6 lg:mx-12 rounded-[18px] md:rounded-[22px] lg:rounded-[24px] bg-[rgba(53,20,29,0.78)] backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.05)] translate-y-[6px] opacity-100' 
+          : 'mt-0 mx-0 rounded-none bg-background/80 backdrop-blur-md border-b translate-y-0'
+      }`}
+      style={{
+        transitionProperty: 'margin, border-radius, background-color, backdrop-filter, box-shadow, opacity, transform'
+      }}
+    >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -32,7 +61,14 @@ const Navbar = () => {
               <Button variant="ghost">Logga in</Button>
             </Link>
             <Link to="/auth">
-              <Button variant="gradient">Starta gratis</Button>
+              <Button 
+                variant="gradient"
+                className={`transition-shadow duration-300 ${
+                  isBubble ? 'shadow-[0_6px_18px_rgba(238,89,61,0.35)] hover:shadow-[0_8px_24px_rgba(238,89,61,0.45)]' : ''
+                }`}
+              >
+                Starta gratis
+              </Button>
             </Link>
           </div>
         </div>
