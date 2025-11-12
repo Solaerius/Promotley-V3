@@ -168,36 +168,35 @@ Deno.serve(async (req) => {
 
     if (!userInfoResponse.ok) {
       console.error('❌ Failed to fetch user info');
+      console.error('📊 TikTok API response:', { status: userInfoResponse.status, statusText: userInfoResponse.statusText });
       
       let errorMessage = 'Kunde inte hämta TikTok-data';
       let logId = 'unknown';
+      let isScopeError = false;
       
       try {
         const errorData = JSON.parse(userInfoText);
         logId = errorData.error?.log_id || 'unknown';
         
+        console.error('🔍 TikTok error details:', errorData.error);
+        
         if (errorData.error?.code === 'scope_not_authorized') {
-          errorMessage = 'Ditt TikTok-konto saknar nödvändiga behörigheter.\n\n' +
-            'För full funktionalitet krävs följande API-behörigheter:\n' +
-            '• user.info.basic (grundläggande profilinformation)\n' +
-            '• user.info.profile (profildetaljer)\n' +
-            '• user.info.stats (statistik om följare och gillningar)\n' +
-            '• video.list (lista videor)\n' +
-            '• video.query (hämta videodata)\n' +
-            '• video.data (detaljerad videostatistik)\n\n' +
-            'Om du bara har Login Kit (grundläggande behörigheter), behöver du ansöka om Content Posting API i TikTok Developer Portal.\n\n' +
-            'Koppla från och anslut kontot igen för att uppdatera behörigheter.';
+          isScopeError = true;
+          
+          // Detect API level to provide better error messages
+          const hasContentPosting = Deno.env.get('TIKTOK_HAS_CONTENT_POSTING_API') === 'true';
+          
+          if (!hasContentPosting) {
+            console.warn('ℹ️ TikTok app is running in Login Kit mode - limited data available');
+            console.warn('ℹ️ To enable full features, apply for Content Posting API at https://developers.tiktok.com/');
+          }
+          
+          errorMessage = 'Ditt TikTok-konto saknar nödvändiga behörigheter. För full statistikåtkomst krävs Content Posting API. Koppla från och anslut igen, eller ansök om video.query och video.data scopes i TikTok Developer Portal.';
         } else if (errorData.error?.code === 'access_token_invalid') {
           errorMessage = 'Token är ogiltig. Koppla från och anslut ditt TikTok-konto igen.';
         } else {
           errorMessage = `TikTok API-fel: ${errorData.error?.message || errorData.error?.code || 'okänt fel'}`;
         }
-        
-        console.error('🔍 TikTok error details:', { 
-          code: errorData.error?.code, 
-          message: errorData.error?.message,
-          log_id: logId 
-        });
       } catch {
         console.error('🔍 Raw error response:', userInfoText);
       }
@@ -206,6 +205,7 @@ Deno.serve(async (req) => {
         JSON.stringify({ 
           success: false, 
           error: errorMessage,
+          limited_access: isScopeError,
           tiktok_log_id: logId
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

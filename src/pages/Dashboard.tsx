@@ -107,12 +107,13 @@ const Dashboard = () => {
 
   // TikTok (real data)
   if (isConnected('tiktok')) {
-    // Check if there's a scope error
+    // Check if there's a scope error or limited access
     const hasScopeError = tiktokData.error?.message?.includes('saknar nödvändiga behörigheter') || 
-                          tiktokData.error?.message?.includes('scope_not_authorized');
+                          tiktokData.error?.message?.includes('scope_not_authorized') ||
+                          tiktokData.limited_access;
     
     if (hasScopeError) {
-      // Show limited access warning
+      // Show limited access warning with clear instructions
       stats.push({
         platform: "TikTok",
         icon: Music2,
@@ -121,32 +122,32 @@ const Dashboard = () => {
         metrics: [
           { 
             label: "Status", 
-            value: "⚠️ Begränsad", 
+            value: "⚠️ Login Kit", 
             change: "", 
             trending: "neutral" as const
           },
           { 
             label: "Behörigheter", 
-            value: "Ofullständiga", 
+            value: "Begränsade", 
             change: "", 
             trending: "down" as const
           },
           { 
-            label: "Åtgärd", 
-            value: "Koppla om", 
+            label: "Profilinfo", 
+            value: "Tillgänglig", 
             change: "", 
             trending: "neutral" as const
           },
           { 
-            label: "API-typ", 
-            value: "Login Kit", 
+            label: "Videodata", 
+            value: "Ej tillgänglig", 
             change: "", 
-            trending: "neutral" as const
+            trending: "down" as const
           },
         ],
         aiInsight: {
-          metric: "Behörigheter",
-          message: "För full statistikåtkomst behöver du Content Posting API-behörigheter från TikTok. Koppla från och anslut igen, eller ansök om video.query och video.data scopes i TikTok Developer Portal.",
+          metric: "API-åtkomst",
+          message: "Din TikTok-anslutning använder Login Kit med begränsade behörigheter. För full statistikåtkomst och videodata krävs Content Posting API med scopes: video.query och video.data. Ansök om dessa via TikTok Developer Portal på developers.tiktok.com.",
           type: "suggestion" as const
         }
       });

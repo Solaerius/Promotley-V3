@@ -25,6 +25,7 @@ interface TikTokData {
   user: TikTokUser | null;
   stats: TikTokStats | null;
   videos: any[];
+  limited_access?: boolean;
 }
 
 export const useTikTokData = () => {
@@ -89,6 +90,7 @@ export const useTikTokData = () => {
         user: tiktokData.user,
         stats: tiktokData.stats,
         videos: tiktokData.videos || [],
+        limited_access: tiktokData.limited_access || false,
       });
 
     } catch (err) {
