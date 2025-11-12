@@ -52,9 +52,9 @@ const Hero = () => {
               />
               <Button 
                 type="submit"
-                variant="default" 
+                variant="gradient" 
                 size="lg" 
-                className="text-base md:text-lg px-6 py-4 md:px-8 bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-300 shadow-glow font-semibold whitespace-nowrap"
+                className="text-base md:text-lg px-6 py-4 md:px-8 hover:scale-105 transition-all duration-300 shadow-glow font-semibold whitespace-nowrap"
               >
                 Starta gratis
                 <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
