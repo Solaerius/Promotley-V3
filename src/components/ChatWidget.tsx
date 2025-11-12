@@ -16,11 +16,13 @@ interface Message {
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -51,9 +53,13 @@ const ChatWidget = () => {
           const newMessage = payload.new as Message;
           setMessages((prev) => [...prev, newMessage]);
           
-          // Show typing indicator for support messages
+          // Show typing indicator and increment unread count for support messages
           if (newMessage.sender_type === "support") {
             setIsTyping(false);
+            // Only increment unread if chat is closed
+            if (!isOpen) {
+              setUnreadCount((prev) => prev + 1);
+            }
           }
         }
       )
@@ -62,7 +68,7 @@ const ChatWidget = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId]);
+  }, [conversationId, isOpen]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -157,9 +163,20 @@ const ChatWidget = () => {
 
   const handleOpen = () => {
     setIsOpen(true);
+    setIsClosing(false);
+    setUnreadCount(0); // Reset unread count when opening chat
     if (!conversationId && messages.length === 0) {
       createConversation();
     }
+  };
+
+  const handleClose = () => {
+    setIsClosing(true);
+    // Wait for animation to complete before actually closing
+    setTimeout(() => {
+      setIsOpen(false);
+      setIsClosing(false);
+    }, 300); // Match animation duration
   };
 
   return (
@@ -172,13 +189,25 @@ const ChatWidget = () => {
           aria-label="Öppna chat"
         >
           <MessageCircle className="w-6 h-6 group-hover:rotate-12 transition-transform" />
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full animate-pulse" />
+          {unreadCount > 0 ? (
+            <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-accent text-accent-foreground rounded-full animate-pulse flex items-center justify-center text-xs font-bold px-1">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          ) : (
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full animate-pulse" />
+          )}
         </button>
       )}
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-[380px] h-[550px] bg-background/95 backdrop-blur-xl rounded-2xl shadow-elegant border border-border/50 flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 fade-in duration-300">
+        <div 
+          className={`fixed bottom-6 right-6 z-50 w-[380px] h-[550px] bg-background/95 backdrop-blur-xl rounded-2xl shadow-elegant border border-border/50 flex flex-col overflow-hidden transition-all duration-300 ${
+            isClosing 
+              ? "animate-out slide-out-to-bottom-8 fade-out" 
+              : "animate-in slide-in-from-bottom-8 fade-in"
+          }`}
+        >
           {/* Header */}
           <div className="bg-gradient-to-r from-primary to-secondary text-primary-foreground p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -193,7 +222,7 @@ const ChatWidget = () => {
               </div>
             </div>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={handleClose}
               className="hover:bg-white/20 rounded-full p-2 transition-colors"
               aria-label="Stäng chat"
             >
