@@ -176,7 +176,7 @@ const ChatWidget = () => {
     setTimeout(() => {
       setIsOpen(false);
       setIsClosing(false);
-    }, 300); // Match animation duration
+    }, 250); // Reduced to 250ms for smoother performance
   };
 
   return (
@@ -185,7 +185,7 @@ const ChatWidget = () => {
       {!isOpen && (
         <button
           onClick={handleOpen}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-110 flex items-center justify-center group"
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-primary text-primary-foreground shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-110 flex items-center justify-center group"
           aria-label="Öppna chat"
         >
           <MessageCircle className="w-6 h-6 group-hover:rotate-12 transition-transform" />
@@ -202,10 +202,10 @@ const ChatWidget = () => {
       {/* Chat Window */}
       {isOpen && (
         <div 
-          className={`fixed bottom-6 right-6 z-50 w-[380px] h-[550px] bg-background/95 backdrop-blur-xl rounded-2xl shadow-elegant border border-border/50 flex flex-col overflow-hidden transition-all duration-300 ${
+          className={`fixed bottom-6 right-6 z-50 w-[380px] h-[550px] bg-background/95 backdrop-blur-xl rounded-2xl shadow-elegant border border-border/50 flex flex-col overflow-hidden ${
             isClosing 
-              ? "animate-out slide-out-to-bottom-8 fade-out" 
-              : "animate-in slide-in-from-bottom-8 fade-in"
+              ? "animate-out slide-out-to-bottom-4 fade-out duration-200" 
+              : "animate-in slide-in-from-bottom-4 fade-in duration-300"
           }`}
         >
           {/* Header */}
