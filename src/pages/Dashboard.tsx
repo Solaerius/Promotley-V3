@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -62,6 +63,17 @@ const Dashboard = () => {
   const { isConnected } = useConnections();
   const tiktokData = useTikTokData();
   const metaData = useMetaData();
+  const [isHeaderBubble, setIsHeaderBubble] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Activate bubble when scrolled past 100px
+      setIsHeaderBubble(window.scrollY > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Build stats array dynamically based on connected platforms
   const stats: PlatformStat[] = [];
@@ -239,8 +251,17 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top nav */}
-      <nav className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      {/* Top nav with bubble animation */}
+      <nav 
+        className={`border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10 transition-all duration-[750ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] ${
+          isHeaderBubble 
+            ? 'mt-2 mx-4 md:mx-6 lg:mx-12 rounded-[18px] md:rounded-[22px] lg:rounded-[24px] bg-[rgba(53,20,29,0.78)] backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.05)] translate-y-[6px]' 
+            : 'mt-0 mx-0 rounded-none'
+        }`}
+        style={{
+          transitionProperty: 'margin, border-radius, background-color, backdrop-filter, box-shadow, opacity, transform'
+        }}
+      >
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-2 font-bold text-xl">
@@ -263,7 +284,7 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Hero Header */}
         <div className="mb-12 text-center max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
             Maximize your social growth with AI-driven content insights
           </h1>
           <p className="text-lg text-muted-foreground">
