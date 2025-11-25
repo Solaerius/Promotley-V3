@@ -30,73 +30,84 @@ import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { useMetaData } from "@/hooks/useMetaData";
 import { useTikTokData } from "@/hooks/useTikTokData";
 import { useConnections } from "@/hooks/useConnections";
-
-// Mock data för grafer
-const viewsData = [
-  { name: "Mån", instagram: 2400, tiktok: 4000, facebook: 1200 },
-  { name: "Tis", instagram: 3000, tiktok: 3800, facebook: 1400 },
-  { name: "Ons", instagram: 2800, tiktok: 5200, facebook: 1600 },
-  { name: "Tor", instagram: 3500, tiktok: 4500, facebook: 1800 },
-  { name: "Fre", instagram: 4200, tiktok: 6000, facebook: 2200 },
-  { name: "Lör", instagram: 5000, tiktok: 7500, facebook: 2800 },
-  { name: "Sön", instagram: 4500, tiktok: 6800, facebook: 2400 },
-];
-
-const engagementData = [
-  { name: "v1", engagement: 65 },
-  { name: "v2", engagement: 72 },
-  { name: "v3", engagement: 68 },
-  { name: "v4", engagement: 78 },
-  { name: "v5", engagement: 85 },
-  { name: "v6", engagement: 82 },
-];
+import { useAnalytics } from "@/hooks/useAnalytics";
+import { Link } from "react-router-dom";
 
 const Analytics = () => {
   const [selectedPeriod, setSelectedPeriod] = useState("7d");
-  const { isConnected } = useConnections();
+  const { isConnected, connections } = useConnections();
   const metaData = useMetaData();
   const tiktokData = useTikTokData();
+  const { data: analyticsData, loading: analyticsLoading } = useAnalytics();
 
-  // Beräkna totaler baserat på riktiga data
-  const totalFollowers = 
-    (metaData.instagram?.followers_count || 0) +
-    (tiktokData.user?.follower_count || 0) +
-    (metaData.facebook?.followers_count || 0);
+  // Check if any accounts are connected
+  const hasConnections = connections.length > 0;
 
-  const totalViews = tiktokData.stats?.totalViews || 15420;
-  const totalLikes = tiktokData.stats?.totalLikes || 8240;
-  const avgEngagement = tiktokData.stats?.avgEngagementRate || "4.2";
+  // Beräkna totaler baserat på riktiga data från kopplade konton
+  const connectedStats = {
+    totalFollowers: 0,
+    totalViews: 0,
+    totalLikes: 0,
+    avgEngagement: 0,
+    totalComments: 0,
+  };
 
-  const stats = [
-    {
+  if (isConnected('meta_ig') && metaData.instagram) {
+    connectedStats.totalFollowers += metaData.instagram.followers_count || 0;
+  }
+  if (isConnected('tiktok') && tiktokData.user) {
+    connectedStats.totalFollowers += tiktokData.user.follower_count || 0;
+    connectedStats.totalViews += tiktokData.stats?.totalViews || 0;
+    connectedStats.totalLikes += tiktokData.stats?.totalLikes || 0;
+    connectedStats.totalComments += tiktokData.stats?.totalComments || 0;
+    if (tiktokData.stats?.avgEngagementRate) {
+      connectedStats.avgEngagement = parseFloat(tiktokData.stats.avgEngagementRate);
+    }
+  }
+  if (isConnected('meta_fb') && metaData.facebook) {
+    connectedStats.totalFollowers += metaData.facebook.followers_count || 0;
+  }
+
+  // Only show stats that have values
+  const stats = [];
+  
+  if (connectedStats.totalFollowers > 0) {
+    stats.push({
       title: "Totala följare",
-      value: totalFollowers.toLocaleString(),
-      change: "+12.5%",
-      trending: "up" as const,
+      value: connectedStats.totalFollowers.toLocaleString(),
       icon: Users,
-    },
-    {
-      title: "Visningar (7d)",
-      value: totalViews.toLocaleString(),
-      change: "+8.3%",
-      trending: "up" as const,
+    });
+  }
+  
+  if (connectedStats.totalViews > 0) {
+    stats.push({
+      title: "Visningar (totalt)",
+      value: connectedStats.totalViews.toLocaleString(),
       icon: Eye,
-    },
-    {
-      title: "Engagemang",
-      value: `${avgEngagement}%`,
-      change: "+2.1%",
-      trending: "up" as const,
+    });
+  }
+  
+  if (connectedStats.totalLikes > 0) {
+    stats.push({
+      title: "Likes",
+      value: connectedStats.totalLikes.toLocaleString(),
       icon: Heart,
-    },
-    {
+    });
+  }
+  
+  if (connectedStats.totalComments > 0) {
+    stats.push({
       title: "Kommentarer",
-      value: "1,234",
-      change: "-3.2%",
-      trending: "down" as const,
+      value: connectedStats.totalComments.toLocaleString(),
       icon: MessageCircle,
-    },
-  ];
+    });
+  }
+
+  // Get history data for graphs from analytics table
+  const getHistoryData = (platform: string) => {
+    const platformData = analyticsData.find(a => a.platform === platform);
+    return platformData?.history as any[] || null;
+  };
 
   return (
     <DashboardLayout>
@@ -109,59 +120,47 @@ const Analytics = () => {
               Översikt av dina sociala medier-prestationer
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant={selectedPeriod === "7d" ? "default" : "outline"}
-              onClick={() => setSelectedPeriod("7d")}
-            >
-              7 dagar
-            </Button>
-            <Button
-              variant={selectedPeriod === "30d" ? "default" : "outline"}
-              onClick={() => setSelectedPeriod("30d")}
-            >
-              30 dagar
-            </Button>
-            <Button
-              variant={selectedPeriod === "90d" ? "default" : "outline"}
-              onClick={() => setSelectedPeriod("90d")}
-            >
-              90 dagar
-            </Button>
-          </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <Card key={index} className="hover:shadow-elegant transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center">
-                      <Icon className="w-6 h-6 text-white" />
+        {/* No connections state */}
+        {!hasConnections && (
+          <Card className="border-2 border-dashed">
+            <CardContent className="p-12 text-center">
+              <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-xl font-semibold mb-2">Inga konton kopplade</h3>
+              <p className="text-muted-foreground mb-6">
+                Koppla dina sociala medier-konton för att se statistik och insikter
+              </p>
+              <Link to="/settings">
+                <Button>
+                  Gå till inställningar
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Stats Cards - Only show if we have connections */}
+        {hasConnections && stats.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((stat, index) => {
+              const Icon = stat.icon;
+              return (
+                <Card key={index} className="hover:shadow-elegant transition-all duration-300">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center">
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
                     </div>
-                    <div
-                      className={`flex items-center gap-1 text-sm font-medium ${
-                        stat.trending === "up" ? "text-green-500" : "text-red-500"
-                      }`}
-                    >
-                      {stat.trending === "up" ? (
-                        <TrendingUp className="w-4 h-4" />
-                      ) : (
-                        <TrendingDown className="w-4 h-4" />
-                      )}
-                      <span>{stat.change}</span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-1">{stat.title}</p>
-                  <p className="text-3xl font-bold text-foreground">{stat.value}</p>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                    <p className="text-sm text-muted-foreground mb-1">{stat.title}</p>
+                    <p className="text-3xl font-bold text-foreground">{stat.value}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
         {/* AI Analysis Section */}
         <Card className="bg-gradient-hero border-primary/20">
@@ -181,77 +180,67 @@ const Analytics = () => {
           </CardContent>
         </Card>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Views Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Visningar per dag</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={viewsData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                  <YAxis stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="instagram"
-                    stroke="#E1306C"
-                    strokeWidth={2}
-                    name="Instagram"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="tiktok"
-                    stroke="#00F2EA"
-                    strokeWidth={2}
-                    name="TikTok"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="facebook"
-                    stroke="#1877F2"
-                    strokeWidth={2}
-                    name="Facebook"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+        {/* Charts - Only show if we have history data */}
+        {hasConnections && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Views/History Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Historik</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analyticsData.some(a => a.history && Array.isArray(a.history) && a.history.length > 0) ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={getHistoryData(analyticsData[0]?.platform || '')}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
+                      <YAxis stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={2}
+                        name="Värde"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      <Eye className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>Ingen historikdata ännu</p>
+                      <p className="text-sm">Data samlas in när dina konton är kopplade</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-          {/* Engagement Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Engagemangsgrad per vecka</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={engagementData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                  <YAxis stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <Bar dataKey="engagement" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
+            {/* Engagement placeholder */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Engagemangsöversikt</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  <div className="text-center">
+                    <Heart className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>Ingen historikdata ännu</p>
+                    <p className="text-sm">Engagemangshistorik visas när data samlas in</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Platform Breakdown */}
         <Card>
