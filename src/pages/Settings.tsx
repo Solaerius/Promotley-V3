@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Trash2, Link as LinkIcon, Instagram, Music2, Facebook, Sun, Moon, Monitor } from "lucide-react";
-import { Link } from "react-router-dom";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
@@ -269,29 +269,8 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Top nav */}
-      <nav className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-              <img src={logo} alt="Promotley Logo" className="w-10 h-10" />
-              <span>Promotley</span>
-            </Link>
-            <div className="flex items-center gap-3">
-              <Link to="/dashboard">
-                <Button variant="ghost">Dashboard</Button>
-              </Link>
-              <Button variant="outline" onClick={signOut}>
-                Logga ut
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main content */}
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <DashboardLayout>
+      <div className="max-w-4xl mx-auto animate-fade-in">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Inställningar</h1>
           <p className="text-muted-foreground">
@@ -487,7 +466,7 @@ const Settings = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </DashboardLayout>
   );
 };
 

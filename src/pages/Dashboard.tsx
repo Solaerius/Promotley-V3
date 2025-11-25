@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   TrendingUp, 
@@ -15,14 +16,11 @@ import {
   Facebook,
   ArrowRight
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { AISuggestions } from "@/components/AISuggestions";
 import { ConnectionManager } from "@/components/ConnectionManager";
-import { useAuth } from "@/hooks/useAuth";
 import { useTikTokData } from "@/hooks/useTikTokData";
 import { useMetaData } from "@/hooks/useMetaData";
 import { useConnections } from "@/hooks/useConnections";
-import logo from "@/assets/logo.png";
 
 // Format number for display
 const formatNumber = (num: number): string => {
@@ -59,21 +57,9 @@ interface PlatformStat {
 }
 
 const Dashboard = () => {
-  const { signOut } = useAuth();
   const { isConnected } = useConnections();
   const tiktokData = useTikTokData();
   const metaData = useMetaData();
-  const [isHeaderBubble, setIsHeaderBubble] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      // Activate bubble when scrolled past 100px
-      setIsHeaderBubble(window.scrollY > 100);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // Build stats array dynamically based on connected platforms
   const stats: PlatformStat[] = [];
@@ -250,38 +236,8 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Top nav with bubble animation */}
-      <nav 
-        className={`border-b backdrop-blur-sm sticky top-0 z-10 transition-all duration-[750ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] ${
-          isHeaderBubble 
-            ? 'mt-2 mx-4 md:mx-6 lg:mx-12 rounded-[18px] md:rounded-[22px] lg:rounded-[24px] bg-card/80 backdrop-blur-xl shadow-elegant translate-y-[6px]' 
-            : 'mt-0 mx-0 rounded-none bg-card/50'
-        }`}
-        style={{
-          transitionProperty: 'margin, border-radius, background-color, backdrop-filter, box-shadow, opacity, transform'
-        }}
-      >
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-              <img src={logo} alt="Promotley Logo" className="w-10 h-10" />
-              <span>Promotley</span>
-            </Link>
-            <div className="flex items-center gap-3">
-              <Link to="/settings">
-                <Button variant="ghost">Inställningar</Button>
-              </Link>
-              <Button variant="outline" onClick={signOut}>
-                Logga ut
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main content */}
-      <div className="container mx-auto px-4 py-8">
+    <DashboardLayout>
+      <div className="space-y-8 animate-fade-in">
         {/* Hero Header */}
         <div className="mb-12 text-center max-w-3xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
@@ -432,41 +388,19 @@ const Dashboard = () => {
         <Card className="mt-8 p-8 bg-gradient-hero border-primary/20">
           <div className="max-w-2xl mx-auto text-center">
             <h3 className="text-3xl font-bold mb-3">
-              Uppgradera till Pro — obegränsade AI-förslag, exporterbara innehållskalendrar och prioriterad support
+              Uppgradera till Pro
             </h3>
-            <div className="grid md:grid-cols-3 gap-4 my-6 text-left">
-              <div className="flex items-start gap-2">
-                <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                <div>
-                  <p className="font-semibold">Obegränsade förslag</p>
-                  <p className="text-sm text-muted-foreground">Obegränsat med AI-genererade förslag</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <Share2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                <div>
-                  <p className="font-semibold">Export to CSV</p>
-                  <p className="text-sm text-muted-foreground">Exportera innehållskalender</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <Heart className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                <div>
-                  <p className="font-semibold">Priority support</p>
-                  <p className="text-sm text-muted-foreground">Få hjälp snabbare</p>
-                </div>
-              </div>
-            </div>
-            <Link to="/auth">
-              <Button variant="gradient" size="lg" aria-label="View pricing plans">
-                View pricing plans
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
+            <p className="text-muted-foreground mb-6">
+              Obegränsade AI-förslag, exporterbara innehållskalendrar och prioriterad support
+            </p>
+            <Button variant="gradient" size="lg" onClick={() => window.open('/auth', '_self')}>
+              Se prisplaner
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
           </div>
         </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
