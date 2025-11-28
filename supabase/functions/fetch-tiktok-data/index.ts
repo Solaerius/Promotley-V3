@@ -161,8 +161,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('📱 Fetching TikTok user info...');
-    // Fetch user info with stats
+    console.log('📱 Fetching TikTok user info with user.info.stats scope...');
+    // Fetch user info with stats using user.info.stats scope
     const userInfoResponse = await fetch(
       'https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,avatar_url,bio_description,likes_count,follower_count,following_count,video_count',
       {
@@ -174,39 +174,31 @@ Deno.serve(async (req) => {
     );
 
     const userInfoText = await userInfoResponse.text();
-    console.log('📊 TikTok API response:', { 
+    console.log('📊 TikTok user info response:', { 
       status: userInfoResponse.status, 
       statusText: userInfoResponse.statusText 
     });
 
     if (!userInfoResponse.ok) {
       console.error('❌ Failed to fetch user info');
-      console.error('📊 TikTok API response:', { status: userInfoResponse.status, statusText: userInfoResponse.statusText });
       
       let errorMessage = 'Kunde inte hämta TikTok-data';
       let logId = 'unknown';
-      let isScopeError = false;
+      let errorCode = 'API_ERROR';
       
       try {
         const errorData = JSON.parse(userInfoText);
         logId = errorData.error?.log_id || 'unknown';
         
-        console.error('🔍 TikTok error details:', errorData.error);
+        console.error('🔍 TikTok API error details:', errorData.error);
         
         if (errorData.error?.code === 'scope_not_authorized') {
-          isScopeError = true;
-          
-          // Detect API level to provide better error messages
-          const hasContentPosting = Deno.env.get('TIKTOK_HAS_CONTENT_POSTING_API') === 'true';
-          
-          if (!hasContentPosting) {
-            console.warn('ℹ️ TikTok app is running in Login Kit mode - limited data available');
-            console.warn('ℹ️ To enable full features, apply for Content Posting API at https://developers.tiktok.com/');
-          }
-          
-          errorMessage = 'Ditt TikTok-konto saknar nödvändiga behörigheter. För full statistikåtkomst krävs Content Posting API. Koppla från och anslut igen, eller ansök om video.query och video.data scopes i TikTok Developer Portal.';
+          errorCode = 'SCOPE_MISSING';
+          errorMessage = 'Behörigheten user.info.stats saknas. Koppla bort och återkoppla TikTok i Inställningar → Integrationer.';
+          console.warn('ℹ️ Missing scope: user.info.stats');
         } else if (errorData.error?.code === 'access_token_invalid') {
-          errorMessage = 'Token är ogiltig. Koppla från och anslut ditt TikTok-konto igen.';
+          errorCode = 'TOKEN_INVALID';
+          errorMessage = 'Din TikTok-anslutning har gått ut. Koppla bort och återkoppla i Inställningar → Integrationer.';
         } else {
           errorMessage = `TikTok API-fel: ${errorData.error?.message || errorData.error?.code || 'okänt fel'}`;
         }
@@ -218,7 +210,7 @@ Deno.serve(async (req) => {
         JSON.stringify({ 
           success: false, 
           error: errorMessage,
-          limited_access: isScopeError,
+          errorCode,
           tiktok_log_id: logId
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -248,8 +240,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('🎥 Fetching TikTok video list...');
-    // Fetch video list (last 20 videos)
+    console.log('🎥 Fetching TikTok video list with video.list scope...');
+    // Fetch video list (last 20 videos) using video.list scope
     const videoListResponse = await fetch(
       'https://open.tiktokapis.com/v2/video/list/?fields=id,create_time,cover_image_url,share_url,video_description,duration,title,like_count,comment_count,share_count,view_count',
       {
@@ -265,11 +257,15 @@ Deno.serve(async (req) => {
     );
 
     const videoListText = await videoListResponse.text();
-    console.log('📹 Video list response status:', videoListResponse.status);
+    console.log('📹 Video list response:', { 
+      status: videoListResponse.status,
+      statusText: videoListResponse.statusText
+    });
 
     let videos: any[] = [];
     let limitedAccess = false;
     let scopeErrorMessage = '';
+    let videoErrorCode = null;
     
     if (videoListResponse.ok) {
       try {
@@ -287,7 +283,7 @@ Deno.serve(async (req) => {
             share_url: video.share_url,
             duration: video.duration,
           }));
-          console.log(`✅ Successfully fetched ${videos.length} videos`);
+          console.log(`✅ Successfully fetched ${videos.length} videos using video.list scope`);
         }
       } catch (e) {
         console.warn('⚠️ Could not parse video list:', e);
@@ -296,15 +292,24 @@ Deno.serve(async (req) => {
       // Try to parse error response
       try {
         const errorData = JSON.parse(videoListText);
-        console.warn('⚠️ Could not fetch videos:', errorData);
+        console.warn('⚠️ Video list API error:', errorData.error);
         
         if (errorData.error?.code === 'scope_not_authorized') {
           limitedAccess = true;
-          scopeErrorMessage = 'Video-statistik kräver video.list behörighet. Koppla bort och återkoppla TikTok i Inställningar → Integrationer.';
-          console.warn('ℹ️ Limited access: Missing video.list scope');
+          videoErrorCode = 'SCOPE_MISSING';
+          scopeErrorMessage = 'Video-statistik kräver video.list behörighet. Koppla bort och återkoppla TikTok i Inställningar → Integrationer för att aktivera scopet.';
+          console.warn('ℹ️ Missing scope: video.list (required for video statistics)');
+        } else if (errorData.error?.code === 'access_token_invalid') {
+          videoErrorCode = 'TOKEN_INVALID';
+          scopeErrorMessage = 'Token har gått ut under video-hämtning. Koppla bort och återkoppla TikTok.';
+        } else {
+          videoErrorCode = 'API_ERROR';
+          scopeErrorMessage = `Video-data kunde inte hämtas: ${errorData.error?.message || 'okänt fel'}`;
         }
       } catch {
-        console.warn('⚠️ Could not fetch videos (raw):', videoListText);
+        console.warn('⚠️ Could not parse video error (raw):', videoListText);
+        videoErrorCode = 'PARSE_ERROR';
+        scopeErrorMessage = 'Video-data kunde inte tolkas från TikTok API.';
       }
     }
 
@@ -330,6 +335,7 @@ Deno.serve(async (req) => {
     
     const response = {
       success: true,
+      connected: true,
       user: {
         display_name: userData.display_name || 'Unknown',
         avatar_url: userData.avatar_url || '',
@@ -350,16 +356,22 @@ Deno.serve(async (req) => {
       videos: videos,
       limited_access: limitedAccess,
       scope_message: scopeErrorMessage || undefined,
+      videoErrorCode: videoErrorCode || undefined,
+      timestamp: new Date().toISOString(),
     };
 
-    console.log('✅ Successfully fetched TikTok data:', {
-      user: response.user.display_name,
+    // Telemetry logging
+    console.log('✅ TikTok data fetch completed:', {
+      display_name: response.user.display_name,
       follower_count: response.user.follower_count,
       likes_count: response.user.likes_count,
       video_count: response.user.video_count,
-      videoCount: videos.length,
+      videos_fetched: videos.length,
       totalViews,
-      limitedAccess,
+      limited_access: limitedAccess,
+      videoErrorCode: videoErrorCode || 'none',
+      scopes_ok: !limitedAccess,
+      timestamp: response.timestamp,
     });
 
     return new Response(
