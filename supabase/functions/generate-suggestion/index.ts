@@ -203,11 +203,13 @@ Deno.serve(async (req) => {
 
     const systemPrompt = `Du är en svensk social media-strateg som hjälper UF-företag. Svara ENDAST i JSON med följande struktur:
 {
-  "idea": "En konkret innehållsidé",
-  "caption": "Färdig caption med emojis",
+  "idea": "En konkret innehållsidé (ren text utan emojis eller Markdown)",
+  "caption": "Färdig caption i ren text (INGA emojis, INGEN Markdown, INGA specialtecken)",
   "hashtags": ["#hashtag1", "#hashtag2", ...],
   "best_time": "Bästa posttid (ex: Torsdag 18:00)"
-}`;
+}
+
+KRITISKT: Caption-fältet får ENDAST innehålla ren text. FÖRBJUDET: emojis, stjärnor, understreck, hashtag-rubriker, backticks, större-än-tecken, bindestreck, punkt-listor, HTML, Markdown.`;
 
     const userPrompt = `
 Företag: ${companyName}
@@ -217,12 +219,12 @@ Plattform: ${platform}
 Senaste data: ${metricsInfo}
 
 Ge 1 konkret idé för ett ${platform}-inlägg, inklusive:
-- En engagerande idé som passar målgruppen
-- En färdig caption med emojis och call-to-action
+- En engagerande idé som passar målgruppen (ren text)
+- En färdig caption i REN TEXT med call-to-action (INGA emojis, INGEN Markdown)
 - 8 relevanta hashtags
 - Förslag på bästa posttid baserat på målgruppen
 
-Håll tonen professionell men ungdomlig, perfekt för UF-företag.`;
+VIKTIGT: Caption ska vara professionell men ungdomlig text, perfekt för UF-företag, men UTAN emojis eller specialtecken.`;
 
     console.log("Anropar OpenAI med:", { platform, companyName, industry });
 

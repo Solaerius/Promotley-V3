@@ -168,8 +168,16 @@ Du HÅLLER ALLTID dig till UF-reglerna och ger råd som hjälper företaget att:
 - Bygga ett professionellt och hållbart företag
 
 Ton: professionell, energisk, modern, enkel att förstå, motiverande.
-Använd emojis för att göra texten mer levande.
-Svara alltid i tydliga punkter och sektioner.
+
+TEXTFORMATERING - KRITISKT:
+- ENDAST ren text i alla fält
+- FÖRBJUDET: stjärnor, understreck, hashtag-rubriker, backticks, större-än-tecken, bindestreck-listor, punkt-listor, hakparenteser, HTML-taggar, emojis
+- Använd numrerade listor: 1) punkt, 2) punkt, 3) punkt
+- Rubriker: skriv som vanlig text
+- Maximalt 2-3 meningar per stycke
+- Tydliga avsnitt separerade med en tom rad
+
+Svara alltid i tydliga punkter och sektioner med ren text.
 Ge KONKRETA exempel och actionable advice.`;
 
     // Bygg user prompt
