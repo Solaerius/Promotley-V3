@@ -250,7 +250,13 @@ ${userContext.knowledgeBase.ufRules.map((rule: any) => `- ${rule.title}: ${rule.
       const messages = [
         {
           role: 'system',
-          content: `Du är Promotely AI-assistent. Du hjälper UF-företag och unga entreprenörer med marknadsföring, sociala medier och strategier.
+          content: `Du är Promotely AI – en expert på marknadsföring för UF-företag (Ung Företagsamhet) och svenska startups.
+
+## Din uppgift
+Analysera användarens fråga och ge personliga råd baserat på:
+- Deras sociala medier-konton (TikTok, Instagram, Facebook) om de är kopplade
+- UF-regler och konkurrenskrav
+- Deras företagsprofil och målsättningar
 
 ANVÄNDARENS KONTEXT:
 - Kopplade konton: ${connectedPlatforms || 'Inga konton kopplade än'}
@@ -263,28 +269,68 @@ ${profileInfo}
 
 ${ufKnowledge}
 
-VIKTIGA INSTRUKTIONER:
-1. När användaren frågar om sina sociala medier-statistik (följare, views, likes, etc), använd get_social_stats-funktionen för att hämta faktisk data från deras kopplade konton. Svara alltid med konkreta siffror när data finns tillgänglig.
+## KRITISK REGEL: Hämta faktisk data innan du svarar
 
-2. Tolka get_social_stats-svaret så här:
-   - Om success=true och connected=true: Visa konkreta siffror med tidsstämpel (t.ex. "Du har 12 457 följare på TikTok (uppdaterad nyss)")
-   - Om limited_access=true: Visa de siffror som finns (followers, likes, video_count) men förklara att video-visningar inte är tillgängliga utan video.list behörighet och att användaren måste återkoppla sitt konto. Exempel: "Du har X följare, Y likes och Z videor (uppdaterad nyss). För att se video-visningar, gå till Inställningar → Integrationer, koppla bort och återkoppla TikTok."
-   - Om success=false och connected=false (errorCode=NOT_CONNECTED): Säg "Ditt [plattform]-konto är inte kopplat än. Gå till Inställningar → Integrationer och koppla [plattform] så hämtar jag dina siffror direkt."
-   - Om success=false och connected=true med errorCode=SCOPE_MISSING: Säg "Jag kan inte läsa alla dina [plattform]-siffror eftersom behörigheter saknas. Gå till Inställningar → Integrationer, koppla från [plattform] och anslut igen med fullständiga behörigheter."
-   - Om success=false och connected=true med errorCode=TOKEN_INVALID: Säg "Din [plattform]-anslutning har gått ut. Gå till Inställningar → Integrationer, koppla från och återanslut [plattform]."
-   - Om success=false och errorCode=API_ERROR: Säg "Jag kunde inte nå [plattform] just nu. Försök igen om en stund."
-   
-3. Visa ALDRIG generiska "jag vet inte"-svar. Ge alltid konkret orsak och nästa steg baserat på errorCode från get_social_stats.
+När användaren frågar om sina sociala medier-konton (följare, visningar, engagement, videor):
+1. **ALLTID** anropa get_social_stats FÖRST innan du svarar
+2. **ALDRIG** svara "jag vet inte" eller "koppla ditt konto" utan att först kontrollera med get_social_stats
+3. Om get_social_stats returnerar success=true och connected=true → använd den data du fick och visa konkreta siffror
+4. Om get_social_stats returnerar success=false och connected=false → då och endast då säg att kontot inte är kopplat
 
-4. Om flera konton är kopplade för samma plattform, nämn vilket konto siffrorna gäller (t.ex. "konto: @username").
+## Steg-för-steg-process
 
-5. Använd användarens företagsprofil och branschinformation för att ge personliga råd och rekommendationer.
+1. **Identifiera intent**: Frågar användaren om sina sociala medier-konton (TikTok, Instagram, Facebook)?
+   - Nyckelord: "följare", "visningar", "likes", "engagement", "videor", "mitt TikTok-konto", "min Instagram", "mitt Facebook"
+   - Om JA → anropa get_social_stats omedelbart
 
-6. Om användaren inte har fyllt i sin företagsprofil men frågar om strategier eller innehåll, föreslå att de först fyller i sin profil under Inställningar för bättre personliga rekommendationer.
+2. **Tolka svaret från get_social_stats**:
 
-7. Följ alltid UF-reglerna och riktlinjerna när du ger råd om marknadsföring och företagande.
+   a) **Framgångsrikt svar (success=true, connected=true)**:
+      - Visa konkreta siffror med tidsstämpel
+      - Exempel: "Du har **12 457 följare** på TikTok (uppdaterad ${new Date().toLocaleString('sv-SE', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })})"
+      - Använd exakta värden från API:t (followers, likes, video_count, views)
+      - Om limited_access=true: Visa tillgängliga siffror (followers, likes, video_count) men förklara:
+        * "För att se videovisningar behöver du video.list scopet."
+        * "Gå till **Inställningar → Integrationer**, koppla bort och återkoppla TikTok så aktiveras video.list."
 
-Svara alltid på svenska och var hjälpsam och engagerande. När du presenterar statistik, inkludera alltid tidsstämpeln från get_social_stats-svaret.`
+   b) **Inte kopplat (success=false, connected=false, errorCode=NOT_CONNECTED)**:
+      - "Ditt [plattform]-konto är inte kopplat än. Gå till **Inställningar → Integrationer** och koppla [plattform] så hämtar jag dina siffror direkt."
+
+   c) **Scopeproblem (success=false, connected=true, errorCode=SCOPE_MISSING)**:
+      - "Jag kan inte läsa alla dina [plattform]-siffror eftersom behörigheter (scopes) saknas."
+      - "För TikTok behöver vi user.info.stats och video.list."
+      - "Gå till **Inställningar → Integrationer**, koppla från [plattform] och anslut igen så aktiveras rätt behörigheter."
+
+   d) **Token utgånget (success=false, connected=true, errorCode=TOKEN_INVALID)**:
+      - "Din [plattform]-anslutning har gått ut. Gå till **Inställningar → Integrationer**, koppla från och återanslut [plattform]."
+
+   e) **API-fel (success=false, errorCode=API_ERROR)**:
+      - "Ett tekniskt fel uppstod när jag försökte hämta dina [plattform]-siffror. Försök igen om en stund."
+
+3. **Svara på användarens fråga**:
+   - Var alltid specifik (ge exakta antal, datum, procent)
+   - Förklara *varför* något fungerar/inte fungerar
+   - Ge 1-3 konkreta, actionable steg som användaren kan göra idag
+   - Anpassa dina råd till UF-regler där det är relevant
+
+## Språk & Ton
+- Skriv alltid på SVENSKA (om inte användaren explicit frågar på engelska)
+- Skriv kort och tydligt
+- Använd personlig, vänlig ton (säg "du" istället för "ni")
+- Undvik jargong och marknadsföringsklichéer
+- Ge konkreta exempel istället för generella tips
+
+## Formatering
+- Använd **fetstil** för viktiga nyckeltal och actionables
+- Använd punktlistor för steg-för-steg-instruktioner
+- Håll svar under 200 ord om inte användaren explicit ber om en längre analys
+
+## VIKTIG REGEL: Felaktig diagnos är förbjudet
+- **ALDRIG ALDRIG ALDRIG** svara "koppla TikTok" eller "kontot är inte kopplat" om get_social_stats returnerar success=true och connected=true
+- Om connected=true men vissa fält saknas (limited_access=true), förklara att *specifika behörigheter* (scopes) saknas, inte att kontot är okopplat
+- Om get_social_stats misslyckas av tekniska skäl (errorCode=API_ERROR) → säg att det är ett *tekniskt problem*, inte att kontot saknas
+
+Kom ihåg: Du är här för att hjälpa UF-företagare att växa sina företag smart och snabbt. Hämta alltid faktisk data innan du svarar!`
         },
         ...(history || []).map((msg: any) => ({
           role: msg.role,
@@ -402,28 +448,37 @@ Svara alltid på svenska och var hjälpsam och engagerande. När du presenterar 
                 } else if (!tiktokData?.success) {
                   console.error('❌ TikTok API returned error:', tiktokData?.error);
                   
-                  let action = 'Försök igen om en stund';
-                  let errorCode = 'API_ERROR';
+                  // Parse errorCode from fetch-tiktok-data response
+                  const fetchedErrorCode = tiktokData?.errorCode || 'API_ERROR';
+                  const fetchedVideoErrorCode = tiktokData?.videoErrorCode;
                   
-                  if (tiktokData?.error?.includes('kopplat') || tiktokData?.error?.includes('inte anslut')) {
+                  let action = 'Försök igen om en stund';
+                  let errorCode = fetchedErrorCode;
+                  
+                  // Use the specific errorCode from fetch-tiktok-data
+                  if (fetchedErrorCode === 'NOT_CONNECTED') {
                     action = 'Koppla TikTok i Inställningar → Integrationer';
-                    errorCode = 'NOT_CONNECTED';
-                  } else if (tiktokData?.error?.includes('behörighet') || tiktokData?.error?.includes('scope')) {
-                    action = 'Återkoppla TikTok i Inställningar → Integrationer med fullständiga behörigheter';
+                  } else if (fetchedErrorCode === 'SCOPE_MISSING') {
+                    action = 'Återkoppla TikTok i Inställningar → Integrationer för att aktivera user.info.stats scope';
+                  } else if (fetchedErrorCode === 'TOKEN_INVALID') {
+                    action = 'Koppla från och återanslut TikTok i Inställningar → Integrationer';
+                  } else if (fetchedVideoErrorCode === 'SCOPE_MISSING') {
+                    // Special case: user.info.stats worked but video.list failed
                     errorCode = 'SCOPE_MISSING';
-                  } else if (tiktokData?.error?.includes('ogiltig') || tiktokData?.error?.includes('invalid')) {
-                    action = 'Koppla från och återanslut TikTok i Inställningar';
-                    errorCode = 'TOKEN_INVALID';
+                    action = 'Video-statistik kräver video.list scope. Återkoppla TikTok i Inställningar → Integrationer.';
                   }
                   
                   statsResult = {
                     success: false,
-                    connected: true,
+                    connected: fetchedErrorCode !== 'NOT_CONNECTED',
                     platform: 'tiktok',
                     error: tiktokData?.error || 'Kunde inte hämta TikTok-data',
                     action,
                     errorCode,
-                    limited_access: tiktokData?.limited_access || false
+                    videoErrorCode: fetchedVideoErrorCode,
+                    limited_access: tiktokData?.limited_access || false,
+                    scope_message: tiktokData?.scope_message,
+                    timestamp: tiktokData?.timestamp || new Date().toISOString(),
                   };
                 } else {
                   console.log('✅ TikTok data fetched successfully');
@@ -436,21 +491,21 @@ Svara alltid på svenska och var hjälpsam och engagerande. När du presenterar 
                     connected: true,
                     platform: 'tiktok',
                     account: connection.username || user_data.display_name,
-                    data: {
-                      followers: user_data.follower_count || 0,
-                      following: user_data.following_count || 0,
-                      likes: user_data.likes_count || 0,
-                      videos: user_data.video_count || 0,
-                      totalViews: stats.totalViews || 0,
-                      totalLikes: stats.totalLikes || 0,
-                      totalShares: stats.totalShares || 0,
-                      totalComments: stats.totalComments || 0,
-                      avgEngagementRate: stats.avgEngagementRate || '0%'
-                    },
-                    timestamp: new Date().toISOString(),
+                    followers: user_data.follower_count || 0,
+                    following: user_data.following_count || 0,
+                    likes: user_data.likes_count || 0,
+                    video_count: user_data.video_count || 0,
+                    totalViews: stats.totalViews || 0,
+                    totalLikes: stats.totalLikes || 0,
+                    totalShares: stats.totalShares || 0,
+                    totalComments: stats.totalComments || 0,
+                    avgEngagementRate: stats.avgEngagementRate || '0%',
+                    videos: tiktokData.videos || [],
+                    timestamp: tiktokData.timestamp || new Date().toISOString(),
                     updated: 'nyss',
                     limited_access: tiktokData.limited_access || false,
-                    scope_message: tiktokData.scope_message
+                    scope_message: tiktokData.scope_message,
+                    videoErrorCode: tiktokData.videoErrorCode,
                   };
                   
                   // Cache the result for 60 seconds
@@ -490,8 +545,11 @@ Svara alltid på svenska och var hjälpsam och engagerande. När du presenterar 
             responseTime,
             success: statsResult.success,
             connected: statsResult.connected,
-            errorCode: statsResult.errorCode,
-            cacheHit: false
+            has_data: (statsResult.followers || 0) > 0,
+            limited_access: statsResult.limited_access || false,
+            errorCode: statsResult.errorCode || null,
+            videoErrorCode: statsResult.videoErrorCode || null,
+            timestamp: statsResult.timestamp || new Date().toISOString(),
           });
           
           // Call AI again with the stats data
