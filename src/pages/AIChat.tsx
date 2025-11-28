@@ -29,6 +29,8 @@ const AIChat = () => {
   const { messages, loading, sendMessage, generatePlan, analyzeStats } = useAIAssistant();
   const [inputMessage, setInputMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [isNearBottom, setIsNearBottom] = useState(true);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   const quickCommands = [
     { icon: BarChart3, text: "Analysera min statistik", color: "from-blue-500 to-cyan-500" },
@@ -37,11 +39,39 @@ const AIChat = () => {
     { icon: TrendingUp, text: "Skapa 30-dagars strategi", color: "from-green-500 to-emerald-500" },
   ];
 
-  useEffect(() => {
+  // Check if user is near bottom of scroll area
+  const checkIfNearBottom = () => {
+    const element = scrollRef.current;
+    if (!element) return false;
+    
+    const threshold = 80; // pixels from bottom
+    const scrollBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
+    return scrollBottom < threshold;
+  };
+
+  // Handle scroll events to update near-bottom state
+  const handleScroll = () => {
+    const nearBottom = checkIfNearBottom();
+    setIsNearBottom(nearBottom);
+    setShowScrollButton(!nearBottom && messages.length > 0);
+  };
+
+  // Scroll to bottom smoothly
+  const scrollToBottom = () => {
     if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Auto-scroll only when user is near bottom
+  useEffect(() => {
+    if (isNearBottom && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, loading]);
+  }, [messages, loading, isNearBottom]);
 
   const handleSendMessage = async (text?: string) => {
     const messageText = text || inputMessage.trim();
@@ -106,10 +136,19 @@ const AIChat = () => {
         </div>
 
         {/* Chat Container */}
-        <Card className="flex-1 flex flex-col overflow-hidden">
-          <CardContent className="flex-1 flex flex-col p-0">
-            {/* Messages */}
-            <ScrollArea className="flex-1 p-6" ref={scrollRef}>
+        <Card className="flex-1 flex flex-col overflow-hidden relative">
+          <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+            {/* Messages with proper scroll handling */}
+            <div 
+              className="flex-1 overflow-y-auto p-6"
+              ref={scrollRef}
+              onScroll={handleScroll}
+              style={{ 
+                scrollBehavior: 'auto',
+                overflowY: 'scroll',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
               <div className="space-y-6">
                 {messages.map((msg) => (
                   <div
@@ -162,7 +201,30 @@ const AIChat = () => {
                   </div>
                 )}
               </div>
-            </ScrollArea>
+            </div>
+
+            {/* Scroll to bottom button */}
+            {showScrollButton && (
+              <button
+                onClick={scrollToBottom}
+                className="absolute bottom-24 right-8 bg-gradient-primary text-white px-4 py-2 rounded-full shadow-elegant hover:shadow-glow transition-all duration-300 flex items-center gap-2 z-10 animate-in fade-in slide-in-from-bottom-4"
+              >
+                <span className="text-sm font-medium">Nya meddelanden</span>
+                <svg 
+                  className="w-4 h-4" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M19 14l-7 7m0 0l-7-7m7 7V3" 
+                  />
+                </svg>
+              </button>
+            )}
 
             {/* Input Area */}
             <div className="border-t border-border p-4">
