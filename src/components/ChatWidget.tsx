@@ -153,12 +153,12 @@ const ChatWidget = () => {
     const newSessionId = crypto.randomUUID();
     localStorage.setItem("live_chat_session_id", newSessionId);
     
-    // Reset state
-    setSessionId(newSessionId);
+    // Reset state - setSessionId will trigger loadMessages via useEffect
     setMessages([]);
     setAutoReplyHasBeenSent(false);
     setIsChatClosed(false);
     setInputValue("");
+    setSessionId(newSessionId);
   };
 
   // Drag handlers
@@ -246,6 +246,9 @@ const ChatWidget = () => {
       console.error("Error sending message:", error);
       setSendError("Kunde inte skicka meddelande");
     } else {
+      // Add message to state immediately for instant UI feedback
+      setMessages((prev) => [...prev, data]);
+      
       // Clear input after successful send
       setInputValue("");
       
