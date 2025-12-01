@@ -157,7 +157,7 @@ const AIDashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <MarkdownRenderer content={latestAnalysis.ai_output.sammanfattning} />
+                <MarkdownRenderer content={latestAnalysis.ai_output?.sammanfattning ?? ''} />
               </CardContent>
             </Card>
 
@@ -170,7 +170,7 @@ const AIDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <MarkdownRenderer content={latestAnalysis.ai_output.social_medier_analys} />
+                <MarkdownRenderer content={latestAnalysis.ai_output?.social_medier_analys ?? ''} />
               </CardContent>
             </Card>
 
@@ -184,8 +184,8 @@ const AIDashboard = () => {
                 <CardDescription>Konkreta aktiviteter för varje dag</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {latestAnalysis.ai_output["7_dagars_plan"].map((item, index) => (
+              <div className="space-y-4">
+                  {(latestAnalysis.ai_output?.["7_dagars_plan"] ?? []).map((item, index) => (
                     <div key={index} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-semibold text-lg">{item.dag}</h4>
@@ -212,7 +212,7 @@ const AIDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
-                  {latestAnalysis.ai_output.content_forslag.map((item, index) => (
+                  {(latestAnalysis.ai_output?.content_forslag ?? []).map((item, index) => (
                     <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-semibold">{item.titel}</h4>
@@ -240,7 +240,7 @@ const AIDashboard = () => {
                 <CardDescription>Vägen till framgång i UF-tävlingarna</CardDescription>
               </CardHeader>
               <CardContent>
-                <MarkdownRenderer content={latestAnalysis.ai_output.uf_tavlingsstrategi} />
+                <MarkdownRenderer content={latestAnalysis.ai_output?.uf_tavlingsstrategi ?? ''} />
               </CardContent>
             </Card>
 
@@ -255,7 +255,7 @@ const AIDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {latestAnalysis.ai_output.rekommendationer.map((item, index) => (
+                  {(latestAnalysis.ai_output?.rekommendationer ?? []).map((item, index) => (
                     <div key={index} className="border rounded-lg p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div>
