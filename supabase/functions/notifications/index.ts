@@ -50,6 +50,8 @@ serve(async (req) => {
           headers: { Authorization: `Bearer ${token}` },
         },
       }
+    );
+
     const url = new URL(req.url);
     const pathParts = url.pathname.split('/').filter(Boolean);
 
