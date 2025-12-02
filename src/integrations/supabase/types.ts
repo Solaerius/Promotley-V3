@@ -1108,6 +1108,10 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_oauth_states: { Args: never; Returns: undefined }
+      create_organization_with_founder: {
+        Args: { _logo_url?: string; _name: string; _user_id?: string }
+        Returns: string
+      }
       get_org_role: {
         Args: { _org_id: string; _user_id: string }
         Returns: string
