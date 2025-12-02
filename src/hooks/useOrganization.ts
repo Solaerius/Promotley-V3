@@ -211,41 +211,19 @@ export const useOrganization = () => {
     }
 
     try {
-      // Create organization
-      const { data: org, error: orgError } = await supabase
-        .from("organizations")
-        .insert({ name, logo_url: logoUrl })
-        .select()
-        .single();
-
-      if (orgError) throw orgError;
-
-      // Add user as founder
-      const { error: memberError } = await supabase
-        .from("organization_members")
-        .insert({
-          organization_id: org.id,
-          user_id: user.id,
-          role: "founder",
-          permissions: {
-            can_edit_settings: true,
-            can_use_ai: true,
-            can_manage_calendar: true,
-            can_manage_members: true
-          }
+      // Use the database function that handles everything atomically
+      const { data: orgId, error } = await supabase
+        .rpc('create_organization_with_founder', {
+          _name: name,
+          _logo_url: logoUrl || null,
+          _user_id: user.id
         });
 
-      if (memberError) throw memberError;
-
-      // Set as active organization
-      await supabase
-        .from("users")
-        .update({ active_organization_id: org.id })
-        .eq("id", user.id);
+      if (error) throw error;
 
       toast.success("Organisation skapad!");
       await loadOrganizations();
-      return org.id;
+      return orgId;
     } catch (error) {
       console.error("Error creating organization:", error);
       toast.error("Kunde inte skapa organisation");
