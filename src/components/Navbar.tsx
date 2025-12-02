@@ -29,7 +29,7 @@ const Navbar = () => {
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-[750ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] backdrop-blur-xl ${
         isBubble 
           ? 'mt-2 mx-4 md:mx-6 lg:mx-12 rounded-[18px] md:rounded-[22px] lg:rounded-[24px] shadow-elegant translate-y-[6px]' 
-          : 'mt-0 mx-0 rounded-none border-b border-border/30 translate-y-0'
+          : 'mt-0 mx-0 rounded-none border-b border-border/30 translate-y-0 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.15)]'
       }`}
       style={{
         transitionProperty: 'margin, border-radius, background-color, backdrop-filter, box-shadow, opacity, transform',
