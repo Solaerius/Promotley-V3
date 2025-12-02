@@ -20,6 +20,7 @@ import AIDashboard from "./pages/AIDashboard";
 import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
 import Checkout from "./pages/Checkout";
+import BuyCredits from "./pages/BuyCredits";
 import BillingSuccess from "./pages/BillingSuccess";
 import AdminChat from "./pages/AdminChat";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -144,6 +145,14 @@ const App = () => (
               element={
                 <RequireVerifiedEmail>
                   <Checkout />
+                </RequireVerifiedEmail>
+              } 
+            />
+            <Route 
+              path="/buy-credits" 
+              element={
+                <RequireVerifiedEmail>
+                  <BuyCredits />
                 </RequireVerifiedEmail>
               } 
             />
