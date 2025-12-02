@@ -4,10 +4,11 @@ import { useAdminStatus } from "@/hooks/useAdminStatus";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Gift, Users } from "lucide-react";
+import { Loader2, Gift, Users, Mail, Search } from "lucide-react";
 
 type UserPlan = "starter" | "growth" | "pro";
 
@@ -40,6 +41,9 @@ export default function AdminUserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [emailInput, setEmailInput] = useState("");
+  const [emailSearching, setEmailSearching] = useState(false);
+  const [selectedPlanByEmail, setSelectedPlanByEmail] = useState<string>("");
 
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
@@ -134,6 +138,46 @@ export default function AdminUserManagement() {
     }
   };
 
+  const sponsorByEmail = async () => {
+    if (!emailInput.trim() || !selectedPlanByEmail) {
+      toast.error("Ange e-post och välj ett paket");
+      return;
+    }
+
+    const [plan, months] = selectedPlanByEmail.split("-");
+    
+    try {
+      setEmailSearching(true);
+      
+      // Find user by email
+      const { data: userData, error: findError } = await supabase
+        .from("users")
+        .select("id, email")
+        .eq("email", emailInput.trim().toLowerCase())
+        .maybeSingle();
+
+      if (findError) throw findError;
+      
+      if (!userData) {
+        toast.error("Ingen användare hittades med den e-postadressen");
+        return;
+      }
+
+      // Sponsor the user
+      await sponsorUser(userData.id, plan as UserPlan, parseInt(months));
+      
+      // Clear input
+      setEmailInput("");
+      setSelectedPlanByEmail("");
+      
+    } catch (error) {
+      console.error("Error sponsoring by email:", error);
+      toast.error("Kunde inte ge paket via e-post");
+    } finally {
+      setEmailSearching(false);
+    }
+  };
+
   if (adminLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -155,6 +199,64 @@ export default function AdminUserManagement() {
           <p className="text-muted-foreground">Ge användare gratis tillgång till paket</p>
         </div>
       </div>
+
+      {/* Email-based sponsorship */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Ge paket via e-post
+          </CardTitle>
+          <CardDescription>
+            Skriv in användarens e-postadress och välj vilket paket de ska få
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3 items-end">
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-sm font-medium mb-1 block">E-postadress</label>
+              <Input
+                type="email"
+                placeholder="exempel@email.se"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                disabled={emailSearching}
+              />
+            </div>
+            <div className="min-w-[180px]">
+              <label className="text-sm font-medium mb-1 block">Välj paket</label>
+              <Select
+                value={selectedPlanByEmail}
+                onValueChange={setSelectedPlanByEmail}
+                disabled={emailSearching}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Välj paket..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="starter-1">Starter - 1 mån</SelectItem>
+                  <SelectItem value="starter-3">Starter - 3 mån</SelectItem>
+                  <SelectItem value="growth-1">Growth - 1 mån</SelectItem>
+                  <SelectItem value="growth-3">Growth - 3 mån</SelectItem>
+                  <SelectItem value="pro-1">Pro - 1 mån</SelectItem>
+                  <SelectItem value="pro-3">Pro - 3 mån</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              onClick={sponsorByEmail}
+              disabled={emailSearching || !emailInput.trim() || !selectedPlanByEmail}
+            >
+              {emailSearching ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Gift className="h-4 w-4 mr-2" />
+              )}
+              Ge paket
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4">
         {users.map((user) => (

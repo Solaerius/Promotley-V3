@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Loader2, Sparkles } from "lucide-react";
+import { Check, Loader2, Sparkles, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 
@@ -16,9 +16,11 @@ const BillingSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const sessionId = searchParams.get("session_id");
+  const purchaseType = searchParams.get("type"); // 'credits' for credit purchase
   const [isActivating, setIsActivating] = useState(true);
   const [isActive, setIsActive] = useState(false);
   const [activatedPlan, setActivatedPlan] = useState<string>("pro");
+  const [creditsAdded, setCreditsAdded] = useState<number>(0);
   const [pollCount, setPollCount] = useState(0);
   const MAX_POLLS = 10;
 
@@ -28,29 +30,31 @@ const BillingSuccess = () => {
       return;
     }
 
-    // Verify and activate the subscription
+    // Verify and activate the subscription or credits
     const verifyAndActivate = async () => {
       try {
         // Get auth token
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.access_token) {
           console.error('No auth session');
-          navigate("/auth?redirect=/billing/success?session_id=" + sessionId);
+          navigate("/auth?redirect=/billing/success?session_id=" + sessionId + (purchaseType ? "&type=" + purchaseType : ""));
           return false;
         }
 
-        // Call verify-session to activate the subscription
+        // Determine which route to call
+        const route = purchaseType === 'credits' ? 'verify-credits-session' : 'verify-session';
+
         const { data, error } = await supabase.functions.invoke('billing', {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
           },
           body: {
-            route: 'verify-session',
+            route,
             sessionId: sessionId,
           },
         });
 
-        console.log('[BillingSuccess] verify-session response:', data, error);
+        console.log('[BillingSuccess] verify response:', data, error);
 
         if (error) {
           console.error('Error verifying session:', error);
@@ -62,6 +66,9 @@ const BillingSuccess = () => {
           setIsActivating(false);
           if (data?.plan) {
             setActivatedPlan(data.plan);
+          }
+          if (data?.creditsAdded) {
+            setCreditsAdded(data.creditsAdded);
           }
           return true;
         }
@@ -138,6 +145,56 @@ const BillingSuccess = () => {
                       }`} 
                     />
                   ))}
+                </div>
+              </>
+            ) : purchaseType === 'credits' ? (
+              <>
+                <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-6 rounded-full bg-gradient-primary flex items-center justify-center animate-in zoom-in-50 duration-300">
+                  <Zap className="w-8 h-8 md:w-10 md:h-10 text-white" />
+                </div>
+
+                <h1 className="text-3xl md:text-4xl font-bold mb-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+                  {creditsAdded} krediter har lagts till! 🎉
+                </h1>
+                
+                <p className="text-lg text-muted-foreground mb-8 animate-in fade-in-0 slide-in-from-bottom-4 duration-500 delay-100">
+                  Dina krediter är nu tillgängliga och redo att användas.
+                </p>
+
+                <div className="bg-muted/50 p-6 rounded-lg mb-8 text-left space-y-3 animate-in fade-in-0 slide-in-from-bottom-4 duration-500 delay-200">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    Vad kan du göra?
+                  </h3>
+                  <p className="text-sm flex items-start gap-3">
+                    <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>Använd AI-chatten för att få marknadsföringstips</span>
+                  </p>
+                  <p className="text-sm flex items-start gap-3">
+                    <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>Generera innehållsförslag och strategier</span>
+                  </p>
+                  <p className="text-sm flex items-start gap-3">
+                    <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>En faktura har skickats till din e-post</span>
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in fade-in-0 slide-in-from-bottom-4 duration-500 delay-300">
+                  <Button
+                    variant="gradient"
+                    size="lg"
+                    onClick={() => navigate("/ai-chat")}
+                  >
+                    Använd AI-chatten
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => navigate("/dashboard")}
+                  >
+                    Till dashboard
+                  </Button>
                 </div>
               </>
             ) : (

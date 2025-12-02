@@ -22,6 +22,14 @@ const FALLBACK_PRICES: Record<string, number> = {
   pro: 9900,
 };
 
+// Credit package configuration
+const CREDIT_PACKAGES: Record<string, { credits: number; price: number; name: string }> = {
+  mini: { credits: 10, price: 900, name: 'Mini' },      // 9 kr
+  small: { credits: 25, price: 1900, name: 'Small' },   // 19 kr
+  medium: { credits: 50, price: 3500, name: 'Medium' }, // 35 kr
+  large: { credits: 100, price: 5900, name: 'Large' },  // 59 kr
+};
+
 // Helper to create response with CORS
 function jsonResponse(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -325,6 +333,168 @@ serve(async (req) => {
         max_credits: userData.max_credits,
         renewal_date: userData.renewal_date,
       });
+    }
+
+    // Route: create-credits-checkout (one-time credit purchase)
+    if (route === 'create-credits-checkout') {
+      if (!STRIPE_SECRET_KEY) {
+        console.error('[billing] STRIPE_SECRET_KEY not configured');
+        return jsonResponse({ error: 'stripe_misconfigured', detail: 'Secret key not set' }, 500);
+      }
+
+      const { packageId, userId, successUrl, cancelUrl } = body;
+
+      // Validate userId matches authenticated user
+      if (userId && userId !== user.id) {
+        console.error('[billing] User ID mismatch:', userId, '!=', user.id);
+        return jsonResponse({ error: 'forbidden', detail: 'User ID mismatch' }, 403);
+      }
+
+      const packageKey = packageId as string;
+      if (!packageKey || !CREDIT_PACKAGES[packageKey]) {
+        return jsonResponse({ error: 'invalid_package', detail: `Unknown package: ${packageKey}` }, 400);
+      }
+
+      const creditPackage = CREDIT_PACKAGES[packageKey];
+      console.log('[billing] Creating credits checkout for package:', packageKey, 'credits:', creditPackage.credits);
+
+      const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' });
+
+      // Get or create Stripe customer
+      let customerId: string;
+      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+      
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+      } else {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          metadata: { userId: user.id },
+        });
+        customerId = customer.id;
+      }
+
+      const origin = req.headers.get('origin') || 'https://promotely.se';
+      const returnUrl = (successUrl as string) || `${origin}/billing/success?session_id={CHECKOUT_SESSION_ID}&type=credits`;
+
+      // Create one-time payment session
+      const session = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        ui_mode: 'embedded',
+        customer: customerId,
+        line_items: [{
+          price_data: {
+            currency: 'sek',
+            product_data: {
+              name: `${creditPackage.name} Kreditpaket`,
+              description: `${creditPackage.credits} AI-krediter`,
+            },
+            unit_amount: creditPackage.price,
+          },
+          quantity: 1,
+        }],
+        return_url: returnUrl,
+        metadata: {
+          userId: user.id,
+          type: 'credits',
+          packageId: packageKey,
+          credits: creditPackage.credits.toString(),
+        },
+      });
+
+      console.log('[billing] Credits checkout session created:', session.id);
+
+      return jsonResponse({
+        clientSecret: session.client_secret,
+        checkoutSessionId: session.id,
+      });
+    }
+
+    // Route: verify-credits-session (add credits after payment)
+    if (route === 'verify-credits-session') {
+      const { sessionId } = body;
+      
+      if (!sessionId) {
+        return jsonResponse({ error: 'missing_session_id' }, 400);
+      }
+
+      if (!STRIPE_SECRET_KEY) {
+        return jsonResponse({ error: 'stripe_misconfigured' }, 500);
+      }
+
+      const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' });
+
+      try {
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        
+        console.log('[billing] Verifying credits session:', sessionId, 'status:', session.status, 'payment_status:', session.payment_status);
+
+        // Verify session belongs to this user
+        if (session.metadata?.userId && session.metadata.userId !== user.id) {
+          return jsonResponse({ error: 'forbidden' }, 403);
+        }
+
+        // Verify this is a credits purchase
+        if (session.metadata?.type !== 'credits') {
+          return jsonResponse({ error: 'invalid_session_type' }, 400);
+        }
+
+        if (session.status === 'complete' && session.payment_status === 'paid') {
+          const creditsToAdd = parseInt(session.metadata?.credits || '0');
+          
+          if (creditsToAdd <= 0) {
+            return jsonResponse({ error: 'invalid_credits_amount' }, 400);
+          }
+
+          // Get current user credits
+          const { data: userData, error: fetchError } = await supabaseAdmin
+            .from('users')
+            .select('credits_left, max_credits')
+            .eq('id', user.id)
+            .single();
+
+          if (fetchError || !userData) {
+            return jsonResponse({ error: 'user_not_found' }, 404);
+          }
+
+          // Add credits
+          const newCreditsLeft = (userData.credits_left || 0) + creditsToAdd;
+          const newMaxCredits = Math.max(userData.max_credits || 0, newCreditsLeft);
+
+          const { error: updateError } = await supabaseAdmin
+            .from('users')
+            .update({
+              credits_left: newCreditsLeft,
+              max_credits: newMaxCredits,
+            })
+            .eq('id', user.id);
+
+          if (updateError) {
+            console.error('[billing] Failed to add credits:', updateError);
+            return jsonResponse({ error: 'db_error', detail: updateError.message }, 500);
+          }
+
+          console.log('[billing] Credits added for user:', user.id, 'amount:', creditsToAdd);
+
+          return jsonResponse({
+            status: 'active',
+            creditsAdded: creditsToAdd,
+            newBalance: newCreditsLeft,
+            activated: true,
+          });
+        }
+
+        return jsonResponse({
+          status: 'pending',
+          sessionStatus: session.status,
+          paymentStatus: session.payment_status,
+          activated: false,
+        });
+
+      } catch (stripeError) {
+        console.error('[billing] Stripe error:', stripeError);
+        return jsonResponse({ error: 'stripe_error', detail: stripeError instanceof Error ? stripeError.message : 'Unknown' }, 500);
+      }
     }
 
     // Route: cancel-subscription

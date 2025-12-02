@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Trash2, Link as LinkIcon, Instagram, Music2, Facebook, Sun, Moon, Monitor, XCircle } from "lucide-react";
+import { Download, Trash2, Link as LinkIcon, Instagram, Music2, Facebook, Sun, Moon, Monitor, XCircle, Zap } from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useConnections } from "@/hooks/useConnections";
 import { useAIProfile } from "@/hooks/useAIProfile";
 import { useUserCredits } from "@/hooks/useUserCredits";
+import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import {
   AlertDialog,
@@ -33,6 +34,7 @@ const Settings = () => {
   const { connections, loadConnections, isConnected, getConnection } = useConnections();
   const { profile: aiProfile, updateProfile: updateAIProfile, loading: aiProfileLoading } = useAIProfile();
   const { credits, getPlanLabel, refetch: refetchCredits } = useUserCredits();
+  const navigate = useNavigate();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -52,6 +54,13 @@ const Settings = () => {
   const [isSavingAIProfile, setIsSavingAIProfile] = useState(false);
 
   const hasPaidPlan = credits?.plan && credits.plan !== 'starter';
+
+  const creditPackages = [
+    { id: "mini", name: "Mini", credits: 10, price: 9 },
+    { id: "small", name: "Small", credits: 25, price: 19 },
+    { id: "medium", name: "Medium", credits: 50, price: 35 },
+    { id: "large", name: "Large", credits: 100, price: 59 },
+  ];
 
   // Fetch user's company name
   useEffect(() => {
@@ -476,6 +485,35 @@ const Settings = () => {
                   </div>
                 </div>
               )}
+            </div>
+          </Card>
+
+          {/* Buy Credits */}
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold">Köp krediter</h2>
+                <p className="text-muted-foreground">Fyll på med extra AI-krediter</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {creditPackages.map((pkg) => (
+                <button
+                  key={pkg.id}
+                  onClick={() => navigate(`/buy-credits?package=${pkg.id}`)}
+                  className="p-4 border rounded-lg transition-all hover:border-primary hover:bg-primary/5 text-left"
+                >
+                  <p className="font-bold text-lg">{pkg.credits} krediter</p>
+                  <p className="text-2xl font-bold text-primary">{pkg.price} kr</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {(pkg.price / pkg.credits).toFixed(2)} kr/kredit
+                  </p>
+                </button>
+              ))}
             </div>
           </Card>
 
