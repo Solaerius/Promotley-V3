@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useOrganization } from "@/hooks/useOrganization";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,6 +18,33 @@ import { Badge } from "@/components/ui/badge";
 export const OrganizationSelector = () => {
   const { organizations, activeOrganization, membership, switchOrganization } = useOrganization();
   const [open, setOpen] = useState(false);
+  const [logoUrls, setLogoUrls] = useState<Record<string, string>>({});
+
+  // Fetch proper logo URLs from storage
+  useEffect(() => {
+    const fetchLogos = async () => {
+      const urls: Record<string, string> = {};
+      for (const org of organizations) {
+        if (org.logo_url) {
+          if (org.logo_url.startsWith('http')) {
+            urls[org.id] = org.logo_url;
+          } else {
+            const { data } = supabase.storage
+              .from('profile-images')
+              .getPublicUrl(org.logo_url);
+            if (data?.publicUrl) {
+              urls[org.id] = data.publicUrl;
+            }
+          }
+        }
+      }
+      setLogoUrls(urls);
+    };
+    
+    if (organizations.length > 0) {
+      fetchLogos();
+    }
+  }, [organizations]);
 
   if (!activeOrganization) return null;
 
@@ -36,7 +64,7 @@ export const OrganizationSelector = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="flex items-center gap-2 px-2 h-auto py-1.5">
           <Avatar className="h-7 w-7">
-            <AvatarImage src={activeOrganization.logo_url || undefined} />
+            <AvatarImage src={logoUrls[activeOrganization.id] || undefined} />
             <AvatarFallback className="bg-primary/10 text-primary text-xs">
               {activeOrganization.name.substring(0, 2).toUpperCase()}
             </AvatarFallback>
@@ -72,7 +100,7 @@ export const OrganizationSelector = () => {
             className="flex items-center gap-3 py-2 cursor-pointer"
           >
             <Avatar className="h-8 w-8">
-              <AvatarImage src={org.logo_url || undefined} />
+              <AvatarImage src={logoUrls[org.id] || undefined} />
               <AvatarFallback className="bg-primary/10 text-primary text-xs">
                 {org.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>
@@ -89,7 +117,7 @@ export const OrganizationSelector = () => {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem asChild>
-          <Link to="/organization/new" className="flex items-center gap-2 cursor-pointer">
+          <Link to="/organization/onboarding" className="flex items-center gap-2 cursor-pointer">
             <Plus className="h-4 w-4" />
             <span>Skapa ny organisation</span>
           </Link>
