@@ -24,49 +24,46 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section id="how-it-works" className="py-16 md:py-24 px-4 bg-gradient-hero font-poppins">
-      <div className="container mx-auto">
+    <section id="how-it-works" className="py-20 md:py-28 px-4 bg-gradient-hero font-poppins">
+      <div className="container mx-auto max-w-6xl">
         {/* Section header */}
-        <div className="max-w-3xl mx-auto text-center mb-12 md:mb-16 space-y-3 md:space-y-4">
-          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold px-2 leading-tight">
+        <div className="max-w-2xl mx-auto text-center mb-14 md:mb-20 space-y-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold px-2 leading-tight text-balance">
             Från företagsidé till{" "}
             <span className="text-transparent bg-clip-text bg-gradient-primary">
               färdig strategi
             </span>
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground px-4">
+          <p className="text-base md:text-lg text-muted-foreground px-4 max-w-xl mx-auto">
             Få din personliga innehållsplan på under 5 minuter
           </p>
         </div>
 
         {/* Steps */}
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {steps.map((step, index) => {
             const Icon = step.icon;
             return (
               <Card
                 key={index}
-                className="relative p-6 md:p-8 bg-card/50 backdrop-blur-md border-2 border-border/50 hover:border-primary/50 transition-all duration-500 group hover:-translate-y-2 hover:shadow-glow"
+                className="relative p-6 md:p-8 bg-card/80 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 group"
               >
                 {/* Step number */}
-                <div className="absolute -top-3 -left-3 md:-top-4 md:-left-4 w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-primary flex items-center justify-center text-white font-bold text-lg md:text-xl shadow-elegant">
+                <div className="absolute -top-3 -left-3 w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-primary flex items-center justify-center text-white font-bold text-sm md:text-base shadow-md">
                   {index + 1}
                 </div>
 
-                <div className="space-y-3 md:space-y-4 mt-3 md:mt-4">
+                <div className="space-y-4 mt-2">
                   {/* Icon with gradient background */}
-                  <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br ${step.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon className="w-7 h-7 md:w-8 md:h-8 text-white" />
+                  <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br ${step.gradient} flex items-center justify-center group-hover:scale-105 transition-transform duration-300`}>
+                    <Icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
                   </div>
 
-                  <h3 className="text-xl md:text-2xl font-bold">{step.title}</h3>
+                  <h3 className="text-lg md:text-xl font-semibold">{step.title}</h3>
                   <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                     {step.description}
                   </p>
                 </div>
-
-                {/* Hover glow effect */}
-                <div className="absolute inset-0 rounded-lg bg-gradient-primary opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-xl" />
               </Card>
             );
           })}

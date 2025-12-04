@@ -10,7 +10,6 @@ const stats = [
     suffix: "%",
     label: "Förbättrat engagemang",
     description: "Genomsnittlig ökning för företag som följer strategin",
-    color: "text-primary",
   },
   {
     icon: Users,
@@ -18,7 +17,6 @@ const stats = [
     suffix: "+",
     label: "Nya följare i snitt",
     description: "Per företag under de första 3 månaderna",
-    color: "text-primary",
   },
   {
     icon: Clock,
@@ -26,7 +24,6 @@ const stats = [
     suffix: "h",
     label: "Sparad tid per vecka",
     description: "Genom automatiserad innehållsplanering",
-    color: "text-primary-glow",
   },
 ];
 
@@ -39,27 +36,27 @@ const ResultsSection = () => {
   return (
     <section 
       ref={ref as any}
-      className="relative py-16 md:py-24 px-4 bg-gradient-diagonal overflow-hidden font-poppins"
+      className="relative py-20 md:py-28 px-4 bg-gradient-diagonal overflow-hidden font-poppins"
     >
       {/* Decorative glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px] bg-primary/20 rounded-full blur-3xl animate-glow-pulse" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] md:w-[700px] md:h-[700px] bg-primary/15 rounded-full blur-3xl animate-glow-pulse" />
       
-      <div className="container mx-auto relative z-10">
+      <div className="container mx-auto relative z-10 max-w-6xl">
         {/* Header */}
-        <div className="max-w-3xl mx-auto text-center mb-12 md:mb-16 space-y-3 md:space-y-4">
-          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white px-2 leading-tight">
+        <div className="max-w-2xl mx-auto text-center mb-14 md:mb-20 space-y-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white px-2 leading-tight text-balance">
             När strategi möter{" "}
             <span className="text-primary-glow">
               verkliga resultat
             </span>
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-white/80 px-4">
+          <p className="text-base md:text-lg text-white/70 px-4 max-w-xl mx-auto">
             Resultat från företag som följde sin personliga Promotley-strategi
           </p>
         </div>
 
         {/* Stats cards */}
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto mb-12 md:mb-16">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             const count = useCountUp({ 
@@ -71,28 +68,29 @@ const ResultsSection = () => {
             return (
               <Card
                 key={index}
-                className="p-8 bg-white/10 backdrop-blur-md border-2 border-white/20 hover:bg-white/15 transition-all duration-300 text-center group hover:scale-105"
+                className="p-6 md:p-8 bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/15 transition-all duration-300 text-center"
                 style={{ 
                   transitionDelay: `${index * 100}ms`,
                   opacity: isVisible ? 1 : 0,
-                  transform: isVisible ? 'translateY(0)' : 'translateY(40px)',
+                  transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
                 }}
               >
-                <Icon className={`w-12 h-12 mx-auto mb-4 ${stat.color} group-hover:scale-110 transition-transform`} />
-                <div className={`text-4xl font-extrabold mb-3 ${stat.color} tabular-nums`}>
+                <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-white/10 flex items-center justify-center">
+                  <Icon className="w-6 h-6 text-primary-glow" />
+                </div>
+                <div className="text-3xl md:text-4xl font-bold mb-2 text-white tabular-nums">
                   {count}{stat.suffix}
                 </div>
-                <div className="text-white/90 text-lg font-medium mb-2">
+                <div className="text-white/90 text-base font-medium mb-2">
                   {stat.label}
                 </div>
-                <p className="text-white/70 text-sm leading-relaxed">
+                <p className="text-white/60 text-sm leading-relaxed">
                   {stat.description}
                 </p>
               </Card>
             );
           })}
         </div>
-
       </div>
     </section>
   );

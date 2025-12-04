@@ -26,7 +26,7 @@ const trustFeatures = [
 
 const TrustSection = () => {
   return (
-    <section className="py-16 md:py-24 px-4 bg-gradient-diagonal font-poppins">
+    <section className="py-20 md:py-28 px-4 bg-gradient-diagonal font-poppins">
       <div className="container mx-auto">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
