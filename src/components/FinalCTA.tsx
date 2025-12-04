@@ -4,11 +4,11 @@ import { Link } from "react-router-dom";
 
 const FinalCTA = () => {
   return (
-    <section className="relative py-20 md:py-32 px-4 bg-gradient-warm overflow-hidden font-poppins">
+    <section className="relative py-20 md:py-28 px-4 bg-gradient-warm overflow-hidden font-poppins">
       {/* Animated background elements */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 md:w-96 md:h-96 bg-primary/30 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 md:w-96 md:h-96 bg-accent/30 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
+        <div className="absolute top-1/4 left-1/4 w-48 h-48 md:w-72 md:h-72 bg-primary/20 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 md:w-72 md:h-72 bg-accent/20 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
       </div>
 
       <div className="container mx-auto relative z-10">
