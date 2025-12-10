@@ -1,19 +1,18 @@
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Download, Trash2, User, Building, Zap } from "lucide-react";
+import { Trash2, User, Building, Zap, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useConnections } from "@/hooks/useConnections";
 import { useAIProfile } from "@/hooks/useAIProfile";
 import { useUserCredits } from "@/hooks/useUserCredits";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileImageUpload } from "@/components/ProfileImageUpload";
 import { AIProfileProgress } from "@/components/AIProfileProgress";
 import CreditsDisplay from "@/components/CreditsDisplay";
+import { motion } from "framer-motion";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -124,24 +123,49 @@ const AccountContent = () => {
     }
   };
 
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.1, duration: 0.3 }
+    })
+  };
+
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-8 max-w-2xl mx-auto">
       {/* Credits & Plan */}
-      <Card className="p-6">
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <Zap className="w-5 h-5" />
-          Plan & Krediter
-        </h2>
-        <CreditsDisplay variant="full" />
-      </Card>
+      <motion.section 
+        custom={0} 
+        variants={sectionVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="space-y-4"
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+            <Zap className="w-5 h-5 text-warning" />
+          </div>
+          <h2 className="text-xl font-semibold">Plan & Krediter</h2>
+        </div>
+        <div className="bg-muted/30 rounded-2xl p-6">
+          <CreditsDisplay variant="full" />
+        </div>
+      </motion.section>
 
       {/* Profile Images */}
-      <Card className="p-6">
-        <h2 className="text-xl font-bold mb-4">Profilbilder</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex flex-col items-center p-4 border rounded-lg">
-            <User className="h-5 w-5 mb-2 text-muted-foreground" />
-            <p className="font-medium mb-3 text-sm">Profilbild</p>
+      <motion.section 
+        custom={1} 
+        variants={sectionVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="space-y-4"
+      >
+        <h2 className="text-xl font-semibold mb-4">Profilbilder</h2>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="flex flex-col items-center p-6 bg-muted/30 rounded-2xl">
+            <User className="h-5 w-5 mb-3 text-muted-foreground" />
+            <p className="font-medium mb-4 text-sm">Profilbild</p>
             {user?.id && (
               <ProfileImageUpload
                 userId={user.id}
@@ -152,9 +176,9 @@ const AccountContent = () => {
               />
             )}
           </div>
-          <div className="flex flex-col items-center p-4 border rounded-lg">
-            <Building className="h-5 w-5 mb-2 text-muted-foreground" />
-            <p className="font-medium mb-3 text-sm">Företagslogga</p>
+          <div className="flex flex-col items-center p-6 bg-muted/30 rounded-2xl">
+            <Building className="h-5 w-5 mb-3 text-muted-foreground" />
+            <p className="font-medium mb-4 text-sm">Företagslogga</p>
             {user?.id && (
               <ProfileImageUpload
                 userId={user.id}
@@ -166,117 +190,149 @@ const AccountContent = () => {
             )}
           </div>
         </div>
-      </Card>
+      </motion.section>
 
       {/* Account Info */}
-      <Card className="p-6">
-        <h2 className="text-xl font-bold mb-4">Kontoinformation</h2>
-        <div className="space-y-4">
+      <motion.section 
+        custom={2} 
+        variants={sectionVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="space-y-4"
+      >
+        <h2 className="text-xl font-semibold mb-4">Kontoinformation</h2>
+        <div className="space-y-5">
           <div>
             <Label className="text-sm text-muted-foreground">E-post</Label>
-            <p className="font-medium">{user?.email}</p>
+            <p className="font-medium mt-1">{user?.email}</p>
           </div>
-          <div>
-            <Label className="text-sm text-muted-foreground mb-2 block">Företagsnamn</Label>
-            <div className="flex gap-2">
+          <div className="space-y-2">
+            <Label className="text-sm text-muted-foreground">Företagsnamn</Label>
+            <div className="flex gap-3">
               <Input
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 placeholder="Mitt UF-företag"
+                className="bg-muted/30 border-0"
               />
               <Button 
                 onClick={handleSaveCompanyName}
                 disabled={isSavingCompanyName || companyName === originalCompanyName}
+                size="icon"
+                variant="secondary"
               >
-                {isSavingCompanyName ? "Sparar..." : "Spara"}
+                <Save className="w-4 h-4" />
               </Button>
             </div>
           </div>
         </div>
-      </Card>
+      </motion.section>
 
       {/* AI Profile */}
-      <Card className="p-6">
-        <h2 className="text-xl font-bold mb-2">AI-profil</h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Fyll i för att få bättre AI-svar (minst 3 av 4 första fälten)
-        </p>
+      <motion.section 
+        custom={3} 
+        variants={sectionVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="space-y-4"
+      >
+        <div>
+          <h2 className="text-xl font-semibold mb-1">AI-profil</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Fyll i för bättre AI-svar (minst 3 av 4 första)
+          </p>
+        </div>
         <AIProfileProgress />
-        <div className="space-y-4 mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label>Bransch</Label>
+        <div className="space-y-5 mt-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm">Bransch</Label>
               <Input
                 value={aiFormData.branch}
                 onChange={(e) => setAiFormData(p => ({ ...p, branch: e.target.value }))}
-                placeholder="t.ex. E-handel, Hälsa"
+                placeholder="t.ex. E-handel"
+                className="bg-muted/30 border-0"
               />
             </div>
-            <div>
-              <Label>Målgrupp</Label>
+            <div className="space-y-2">
+              <Label className="text-sm">Målgrupp</Label>
               <Input
                 value={aiFormData.malgrupp}
                 onChange={(e) => setAiFormData(p => ({ ...p, malgrupp: e.target.value }))}
-                placeholder="t.ex. Unga vuxna 18-25"
+                placeholder="t.ex. 18-25 år"
+                className="bg-muted/30 border-0"
               />
             </div>
-            <div>
-              <Label>Prisnivå</Label>
+            <div className="space-y-2">
+              <Label className="text-sm">Prisnivå</Label>
               <Input
                 value={aiFormData.prisniva}
                 onChange={(e) => setAiFormData(p => ({ ...p, prisniva: e.target.value }))}
-                placeholder="t.ex. Budget, Premium"
+                placeholder="t.ex. Budget"
+                className="bg-muted/30 border-0"
               />
             </div>
-            <div>
-              <Label>Målsättning</Label>
+            <div className="space-y-2">
+              <Label className="text-sm">Målsättning</Label>
               <Input
                 value={aiFormData.malsattning}
                 onChange={(e) => setAiFormData(p => ({ ...p, malsattning: e.target.value }))}
-                placeholder="t.ex. Öka varumärkeskännedom"
+                placeholder="t.ex. Öka synlighet"
+                className="bg-muted/30 border-0"
               />
             </div>
           </div>
-          <div>
-            <Label>Produktbeskrivning</Label>
+          <div className="space-y-2">
+            <Label className="text-sm">Produktbeskrivning</Label>
             <Textarea
               value={aiFormData.produkt_beskrivning}
               onChange={(e) => setAiFormData(p => ({ ...p, produkt_beskrivning: e.target.value }))}
               placeholder="Beskriv din produkt/tjänst..."
               rows={3}
+              className="bg-muted/30 border-0 resize-none"
             />
           </div>
-          <div>
-            <Label>Marknadsplan</Label>
+          <div className="space-y-2">
+            <Label className="text-sm">Marknadsplan</Label>
             <Textarea
               value={aiFormData.marknadsplan}
               onChange={(e) => setAiFormData(p => ({ ...p, marknadsplan: e.target.value }))}
               placeholder="Nuvarande marknadsföringsstrategi..."
               rows={3}
+              className="bg-muted/30 border-0 resize-none"
             />
           </div>
-          <Button onClick={handleSaveAIProfile} disabled={isSavingAIProfile}>
+          <Button 
+            onClick={handleSaveAIProfile} 
+            disabled={isSavingAIProfile}
+            className="w-full sm:w-auto"
+          >
             {isSavingAIProfile ? "Sparar..." : "Spara AI-profil"}
           </Button>
         </div>
-      </Card>
+      </motion.section>
 
       {/* Danger Zone */}
-      <Card className="p-6 border-destructive/50">
-        <h2 className="text-xl font-bold mb-4 text-destructive">Riskzon</h2>
+      <motion.section 
+        custom={4} 
+        variants={sectionVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="pt-8 border-t border-destructive/20"
+      >
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-medium">Radera konto</p>
-            <p className="text-sm text-muted-foreground">
-              Permanent radering av ditt konto och all data
+            <h3 className="font-semibold text-destructive">Radera konto</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Permanent radering av alla data
             </p>
           </div>
-          <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
+          <Button variant="destructive" size="sm" onClick={() => setShowDeleteDialog(true)}>
             <Trash2 className="w-4 h-4 mr-2" />
             Radera
           </Button>
         </div>
-      </Card>
+      </motion.section>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>

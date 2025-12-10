@@ -1,6 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { HeroBanner } from "@/components/ui/HeroBanner";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { motion } from "framer-motion";
@@ -72,7 +70,7 @@ const Dashboard = () => {
       icon: Sparkles,
       title: "AI-analys",
       subtitle: "Få insikter",
-      onClick: () => window.location.href = '/ai-dashboard',
+      onClick: () => window.location.href = '/analytics',
     },
     {
       icon: Calendar,
@@ -87,25 +85,21 @@ const Dashboard = () => {
       title: "Veckoframsteg",
       value: connections.length > 0 ? "85%" : "0%",
       icon: TrendingUp,
-      color: "primary",
     },
     {
       title: "Följare",
       value: formatNumber(totalFollowers),
       icon: Users,
-      color: "secondary",
     },
     {
       title: "Planerade inlägg",
       value: upcomingPosts.toString(),
       icon: Calendar,
-      color: "success",
     },
     {
       title: "AI-krediter",
       value: (credits?.credits_left || 0).toString(),
       icon: Zap,
-      color: "warning",
     },
   ];
 
@@ -119,7 +113,7 @@ const Dashboard = () => {
     {
       title: "AI-Chat",
       description: "Prata med AI",
-      href: "/ai-chat",
+      href: "/ai",
       icon: MessageSquare,
     },
     {
@@ -132,7 +126,7 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-5xl mx-auto">
+      <div className="space-y-8 max-w-4xl mx-auto">
         {/* Hero Banner */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -146,8 +140,8 @@ const Dashboard = () => {
           />
         </motion.div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        {/* Stats Row - Seamless grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {statsCards.map((stat, index) => {
             const Icon = stat.icon;
             return (
@@ -156,96 +150,87 @@ const Dashboard = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 + index * 0.05, duration: 0.4 }}
+                className="bg-muted/30 rounded-2xl p-5 hover:bg-muted/50 transition-colors"
               >
-                <Card className="content-card h-full">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl bg-${stat.color}/10 flex items-center justify-center flex-shrink-0`}>
-                        <Icon className={`w-5 h-5 text-${stat.color}`} />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs text-muted-foreground truncate">{stat.title}</p>
-                        <p className="text-xl font-bold">{stat.value}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">{stat.title}</p>
+                    <p className="text-xl font-bold">{stat.value}</p>
+                  </div>
+                </div>
               </motion.div>
             );
           })}
         </div>
 
-        {/* Quick Links */}
+        {/* Quick Links - Clean buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4 }}
+          className="grid grid-cols-1 sm:grid-cols-3 gap-3"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {quickLinks.map((link, index) => {
-              const Icon = link.icon;
-              return (
-                <Link key={link.title} to={link.href}>
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="feature-card flex items-center gap-4 p-4"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-medium truncate">{link.title}</p>
-                      <p className="text-sm text-muted-foreground truncate">{link.description}</p>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-muted-foreground ml-auto flex-shrink-0" />
-                  </motion.div>
-                </Link>
-              );
-            })}
-          </div>
+          {quickLinks.map((link) => {
+            const Icon = link.icon;
+            return (
+              <Link key={link.title} to={link.href}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-4 p-4 bg-muted/30 hover:bg-muted/50 rounded-2xl transition-colors cursor-pointer"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium">{link.title}</p>
+                    <p className="text-sm text-muted-foreground">{link.description}</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                </motion.div>
+              </Link>
+            );
+          })}
         </motion.div>
 
-        {/* Chart */}
+        {/* Chart - Seamless */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.4 }}
+          className="bg-muted/30 rounded-2xl p-6"
         >
-          <Card className="chart-container">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-semibold">Tillväxt</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={180}>
-                <AreaChart data={progressData}>
-                  <defs>
-                    <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <RechartsTooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "12px",
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={2}
-                    fill="url(#progressGradient)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <h3 className="text-lg font-semibold mb-4">Tillväxt</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <AreaChart data={progressData}>
+              <defs>
+                <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+              <RechartsTooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "12px",
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="hsl(var(--primary))"
+                strokeWidth={2}
+                fill="url(#progressGradient)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </motion.div>
 
         {/* Connection Manager */}
@@ -257,34 +242,33 @@ const Dashboard = () => {
           <ConnectionManager />
         </motion.div>
 
-        {/* Upgrade CTA */}
+        {/* Upgrade CTA - Subtle */}
         {credits && credits.plan === 'starter' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45, duration: 0.4 }}
+            className="bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 rounded-2xl p-6"
           >
-            <GlassCard variant="hero" className="p-6">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="text-center sm:text-left">
-                  <h3 className="text-xl font-bold text-white mb-1">
-                    Uppgradera till Pro
-                  </h3>
-                  <p className="text-white/80 text-sm">
-                    Fler krediter och avancerad analys
-                  </p>
-                </div>
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
-                  className="whitespace-nowrap"
-                  onClick={() => window.location.href = '/#pricing'}
-                >
-                  Se planer
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-center sm:text-left">
+                <h3 className="text-lg font-bold mb-1">
+                  Uppgradera till Pro
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  Fler krediter och avancerad analys
+                </p>
               </div>
-            </GlassCard>
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="whitespace-nowrap"
+                onClick={() => window.location.href = '/#pricing'}
+              >
+                Se planer
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
           </motion.div>
         )}
       </div>

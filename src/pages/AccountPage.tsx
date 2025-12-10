@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Building2, Settings, Palette } from "lucide-react";
+import { User, Building2, Palette } from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { motion } from "framer-motion";
 
@@ -14,47 +14,60 @@ const AccountPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 animate-fade-in">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Konto & Inställningar</h1>
-          <p className="text-muted-foreground">
+      <div className="w-full max-w-4xl mx-auto">
+        {/* Header - Clean and centered */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+            Konto & Inställningar
+          </h1>
+          <p className="text-muted-foreground text-sm">
             Hantera ditt konto, organisation och appinställningar
           </p>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs - Pill style, centered */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-lg">
-            <TabsTrigger value="konto" className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              Konto
-            </TabsTrigger>
-            <TabsTrigger value="organisation" className="flex items-center gap-2">
-              <Building2 className="w-4 h-4" />
-              Organisation
-            </TabsTrigger>
-            <TabsTrigger value="app" className="flex items-center gap-2">
-              <Palette className="w-4 h-4" />
-              App
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex justify-center mb-8">
+            <TabsList className="inline-flex h-11 items-center justify-center rounded-full bg-muted/50 p-1">
+              <TabsTrigger 
+                value="konto" 
+                className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+              >
+                <User className="w-4 h-4" />
+                Konto
+              </TabsTrigger>
+              <TabsTrigger 
+                value="organisation" 
+                className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+              >
+                <Building2 className="w-4 h-4" />
+                Organisation
+              </TabsTrigger>
+              <TabsTrigger 
+                value="app" 
+                className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+              >
+                <Palette className="w-4 h-4" />
+                App
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <motion.div
             key={activeTab}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            <TabsContent value="konto" className="mt-6">
+            <TabsContent value="konto" className="mt-0">
               <AccountContent />
             </TabsContent>
 
-            <TabsContent value="organisation" className="mt-6">
+            <TabsContent value="organisation" className="mt-0">
               <OrganizationContent />
             </TabsContent>
 
-            <TabsContent value="app" className="mt-6">
+            <TabsContent value="app" className="mt-0">
               <AppSettingsContent />
             </TabsContent>
           </motion.div>
