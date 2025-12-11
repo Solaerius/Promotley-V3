@@ -1,11 +1,11 @@
 // Swish configuration for Promotely
 export const SWISH_CONFIG = {
   // Swish phone number (format: 123XXXXXXX without country code prefix)
-  phoneNumber: "1234567890", // TODO: Replace with actual Swish number
-  
+  phoneNumber: "0721511376", // TODO: Replace with actual Swish number
+
   // Payee alias format for QR code (format: +46XXXXXXXXX or 123XXXXXXX)
-  payeeAlias: "1234567890", // TODO: Replace with actual Swish number
-  
+  payeeAlias: "+46721511376", // TODO: Replace with actual Swish number
+
   // Company name for messages
   companyName: "Promotely UF",
 };
@@ -73,15 +73,12 @@ export function generateSwishMessage(planName: string, orderId: string): string 
 
 // Generate Swish QR code data (Swedish Swish format)
 // Format: C{payee};{amount};{message};1
-export function generateSwishQRData(
-  amount: number,
-  message: string
-): string {
+export function generateSwishQRData(amount: number, message: string): string {
   // Swish QR code format for payments
   // Uses the mobile BankID Swish format
   const payee = SWISH_CONFIG.payeeAlias;
   const encodedMessage = encodeURIComponent(message);
-  
+
   // Standard Swish QR format
   return `C${payee};${amount};${encodedMessage};1`;
 }
