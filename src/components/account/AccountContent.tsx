@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Trash2, User, Building, Zap, Save, CreditCard, XCircle } from "lucide-react";
+import { Trash2, User, Building, Zap, Save, CreditCard, XCircle, ArrowDown, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useAIProfile } from "@/hooks/useAIProfile";
@@ -14,7 +14,7 @@ import { AIProfileProgress } from "@/components/AIProfileProgress";
 import CreditsDisplay from "@/components/CreditsDisplay";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { SWISH_PLANS } from "@/lib/swishConfig";
+import { SWISH_PLANS, CREDIT_PACKAGES } from "@/lib/swishConfig";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,18 +25,28 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const AccountContent = () => {
   const { toast } = useToast();
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const { profile: aiProfile, updateProfile: updateAIProfile, loading: aiProfileLoading } = useAIProfile();
-  const { credits, getPlanLabel, refetch: refetchCredits } = useUserCredits();
+  const { credits, getPlanLabel, getTierLevel, refetch: refetchCredits } = useUserCredits();
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
+  const [selectedDowngradePlan, setSelectedDowngradePlan] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isDowngrading, setIsDowngrading] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [originalCompanyName, setOriginalCompanyName] = useState("");
   const [isSavingCompanyName, setIsSavingCompanyName] = useState(false);
@@ -138,6 +148,31 @@ const AccountContent = () => {
     }
   };
 
+  const handleDowngrade = async () => {
+    if (!user?.id || !selectedDowngradePlan) return;
+    setIsDowngrading(true);
+    try {
+      const plan = SWISH_PLANS[selectedDowngradePlan as keyof typeof SWISH_PLANS];
+      const { error } = await supabase
+        .from('users')
+        .update({ 
+          plan: selectedDowngradePlan as any,
+          max_credits: plan.credits,
+          credits_left: Math.min(credits?.credits_left || 0, plan.credits),
+        })
+        .eq('id', user.id);
+      if (error) throw error;
+      toast({ title: "Plan nedgraderad", description: `Du har nu ${plan.name}.` });
+      refetchCredits();
+      setShowDowngradeDialog(false);
+      setSelectedDowngradePlan(null);
+    } catch (error) {
+      toast({ title: "Fel", description: "Kunde inte nedgradera planen", variant: "destructive" });
+    } finally {
+      setIsDowngrading(false);
+    }
+  };
+
   const confirmDeleteAccount = async () => {
     if (!user?.id) return;
     setIsDeleting(true);
@@ -162,6 +197,13 @@ const AccountContent = () => {
   };
 
   const hasActivePlan = credits?.plan && !['free_trial'].includes(credits.plan);
+  const currentTierLevel = credits?.plan ? getTierLevel(credits.plan) : 0;
+
+  // Get plans user can downgrade to
+  const downgradeOptions = Object.entries(SWISH_PLANS).filter(([key]) => {
+    const planLevel = getTierLevel(key);
+    return planLevel < currentTierLevel;
+  });
 
   return (
     <div className="space-y-8 max-w-2xl mx-auto">
@@ -179,17 +221,51 @@ const AccountContent = () => {
           </div>
           <h2 className="text-xl font-semibold">Plan & Krediter</h2>
         </div>
-        <div className="bg-muted/30 rounded-2xl p-6 space-y-4">
+        <div className="bg-muted/30 rounded-2xl p-6 space-y-6">
           <CreditsDisplay variant="full" />
           
+          {/* Credit top-up packages */}
+          <div className="pt-4 border-t border-border/50">
+            <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Fyll på krediter
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {Object.entries(CREDIT_PACKAGES).map(([key, pkg]) => (
+                <Button
+                  key={key}
+                  variant="outline"
+                  className="flex flex-col h-auto py-3 hover:bg-primary/5 hover:border-primary/50"
+                  onClick={() => navigate(`/swish-checkout?type=credits&package=${key}`)}
+                >
+                  <span className="text-lg font-bold">{pkg.credits}</span>
+                  <span className="text-xs text-muted-foreground">krediter</span>
+                  <span className="text-sm font-semibold text-primary mt-1">{pkg.price} kr</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Plan actions */}
           <div className="flex flex-wrap gap-3 pt-4 border-t border-border/50">
             <Button 
               onClick={() => navigate('/pricing')}
               className="gap-2"
             >
               <CreditCard className="w-4 h-4" />
-              {hasActivePlan ? "Uppgradera plan" : "Köp krediter"}
+              {hasActivePlan ? "Uppgradera plan" : "Välj plan"}
             </Button>
+            
+            {hasActivePlan && downgradeOptions.length > 0 && (
+              <Button 
+                variant="outline"
+                onClick={() => setShowDowngradeDialog(true)}
+                className="gap-2"
+              >
+                <ArrowDown className="w-4 h-4" />
+                Nedgradera plan
+              </Button>
+            )}
             
             {hasActivePlan && (
               <Button 
@@ -419,6 +495,40 @@ const AccountContent = () => {
               className="bg-destructive hover:bg-destructive/90"
             >
               {isCancelling ? "Avslutar..." : "Avsluta prenumeration"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showDowngradeDialog} onOpenChange={setShowDowngradeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Nedgradera plan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Välj vilken plan du vill nedgradera till. Dina befintliga krediter behålls upp till den nya planens gräns.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Select value={selectedDowngradePlan || ""} onValueChange={setSelectedDowngradePlan}>
+              <SelectTrigger>
+                <SelectValue placeholder="Välj plan" />
+              </SelectTrigger>
+              <SelectContent>
+                {downgradeOptions.map(([key, plan]) => (
+                  <SelectItem key={key} value={key}>
+                    {plan.name} – {plan.credits} krediter/månad ({plan.price} kr)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setSelectedDowngradePlan(null)}>Avbryt</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDowngrade} 
+              disabled={isDowngrading || !selectedDowngradePlan}
+            >
+              {isDowngrading ? "Nedgraderar..." : "Bekräfta nedgradering"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

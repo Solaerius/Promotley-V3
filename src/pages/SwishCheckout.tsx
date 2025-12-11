@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Loader2, ArrowLeft, Smartphone, CreditCard } from "lucide-react";
+import { Check, Loader2, ArrowLeft, Smartphone, CreditCard, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,9 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { 
   SWISH_PLANS, 
+  CREDIT_PACKAGES,
   SwishPlanType, 
+  CreditPackageType,
   generateOrderId, 
   generateSwishMessage,
   generateSwishQRData,
@@ -21,7 +23,10 @@ import {
 const SwishCheckout = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  
+  const checkoutType = searchParams.get("type") || "plan"; // "plan" or "credits"
   const planParam = searchParams.get("plan") as SwishPlanType | null;
+  const packageParam = searchParams.get("package") as CreditPackageType | null;
   
   const [step, setStep] = useState<"details" | "payment" | "confirmation">("details");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,6 +37,24 @@ const SwishCheckout = () => {
     email: "",
     companyName: "",
   });
+
+  // Determine what we're purchasing
+  const isPlanPurchase = checkoutType === "plan" && planParam && SWISH_PLANS[planParam];
+  const isCreditPurchase = checkoutType === "credits" && packageParam && CREDIT_PACKAGES[packageParam];
+  
+  const currentItem = isPlanPurchase 
+    ? SWISH_PLANS[planParam!]
+    : isCreditPurchase 
+      ? CREDIT_PACKAGES[packageParam!]
+      : null;
+  
+  const itemName = isPlanPurchase 
+    ? currentItem?.name 
+    : isCreditPurchase 
+      ? `${currentItem?.credits} krediter`
+      : "";
+  
+  const itemPrice = currentItem?.price || 0;
 
   // Get current user data
   useEffect(() => {
@@ -61,13 +84,13 @@ const SwishCheckout = () => {
     fetchUser();
   }, []);
 
-  if (!planParam || !SWISH_PLANS[planParam]) {
+  if (!currentItem) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="container mx-auto px-4 py-20 text-center">
-          <h1 className="text-2xl font-bold mb-4">Ogiltigt paket</h1>
-          <p className="text-muted-foreground mb-6">Det valda paketet kunde inte hittas.</p>
+          <h1 className="text-2xl font-bold mb-4">Ogiltig produkt</h1>
+          <p className="text-muted-foreground mb-6">Den valda produkten kunde inte hittas.</p>
           <Button onClick={() => navigate("/pricing")}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Tillbaka till priser
@@ -77,9 +100,8 @@ const SwishCheckout = () => {
     );
   }
 
-  const plan = SWISH_PLANS[planParam];
-  const swishMessage = generateSwishMessage(plan.name, orderId);
-  const qrData = generateSwishQRData(plan.price, swishMessage);
+  const swishMessage = generateSwishMessage(itemName, orderId);
+  const qrData = generateSwishQRData(itemPrice, swishMessage);
 
   const handleDetailsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,14 +120,16 @@ const SwishCheckout = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
+      const orderType = isPlanPurchase ? planParam : `credits_${packageParam}`;
+      
       const { error } = await supabase.from("swish_orders").insert({
         order_id: orderId,
         user_id: user?.id || null,
         email: formData.email,
         name: formData.name,
         company_name: formData.companyName || null,
-        plan: planParam,
-        amount: plan.price,
+        plan: orderType,
+        amount: itemPrice,
         swish_message: swishMessage,
         status: "pending",
       });
@@ -129,11 +153,11 @@ const SwishCheckout = () => {
       <div className="container mx-auto px-4 py-12 max-w-2xl">
         <Button
           variant="ghost"
-          onClick={() => step === "details" ? navigate("/pricing") : setStep("details")}
+          onClick={() => step === "details" ? navigate(isPlanPurchase ? "/pricing" : "/account") : setStep("details")}
           className="mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          {step === "details" ? "Tillbaka till priser" : "Tillbaka"}
+          {step === "details" ? "Tillbaka" : "Tillbaka"}
         </Button>
 
         {/* Progress indicator */}
@@ -160,20 +184,36 @@ const SwishCheckout = () => {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
-              {/* Plan summary */}
+              {/* Item summary */}
               <div className="bg-muted/30 rounded-2xl p-6 border border-border/50">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold">{plan.name}</h2>
-                  <span className="text-2xl font-bold text-primary">{plan.price} kr/mån</span>
+                  <div className="flex items-center gap-3">
+                    {isCreditPurchase ? (
+                      <Zap className="w-6 h-6 text-warning" />
+                    ) : (
+                      <CreditCard className="w-6 h-6 text-primary" />
+                    )}
+                    <h2 className="text-xl font-bold">{itemName}</h2>
+                  </div>
+                  <span className="text-2xl font-bold text-primary">
+                    {itemPrice} kr{isPlanPurchase && "/mån"}
+                  </span>
                 </div>
-                <ul className="space-y-2">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Check className="w-4 h-4 text-primary shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+                {isPlanPurchase && 'features' in currentItem && (
+                  <ul className="space-y-2">
+                    {currentItem.features.map((feature, i) => (
+                      <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Check className="w-4 h-4 text-primary shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {isCreditPurchase && (
+                  <p className="text-sm text-muted-foreground">
+                    Engångsköp av {currentItem.credits} AI-krediter som läggs till på ditt konto.
+                  </p>
+                )}
               </div>
 
               {/* Details form */}
@@ -258,7 +298,7 @@ const SwishCheckout = () => {
                   <CreditCard className="w-5 h-5 text-primary mt-0.5" />
                   <div>
                     <span className="font-medium">Belopp:</span>
-                    <span className="text-muted-foreground ml-2">{plan.price} kr</span>
+                    <span className="text-muted-foreground ml-2">{itemPrice} kr</span>
                   </div>
                 </div>
 
@@ -318,7 +358,7 @@ const SwishCheckout = () => {
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold">Tack för din beställning!</h2>
                 <p className="text-muted-foreground">
-                  Vi kommer att kontrollera din betalning och aktivera ditt konto så snart som möjligt.
+                  Vi kommer att kontrollera din betalning och {isPlanPurchase ? "aktivera din plan" : "lägga till dina krediter"} så snart som möjligt.
                 </p>
               </div>
 
@@ -328,12 +368,12 @@ const SwishCheckout = () => {
                   <span className="font-mono">{orderId}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Paket:</span>
-                  <span>{plan.name}</span>
+                  <span className="text-muted-foreground">Produkt:</span>
+                  <span>{itemName}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Belopp:</span>
-                  <span>{plan.price} kr</span>
+                  <span>{itemPrice} kr</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Status:</span>

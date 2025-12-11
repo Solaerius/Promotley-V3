@@ -10,7 +10,7 @@ export const SWISH_CONFIG = {
   companyName: "Promotely UF",
 };
 
-// Plan configurations
+// Plan configurations (subscriptions)
 export const SWISH_PLANS = {
   starter: {
     name: "UF Starter",
@@ -54,7 +54,32 @@ export const SWISH_PLANS = {
   },
 } as const;
 
+// Credit top-up packages (one-time purchases)
+export const CREDIT_PACKAGES = {
+  mini: {
+    name: "Mini",
+    credits: 10,
+    price: 9,
+  },
+  small: {
+    name: "Liten",
+    credits: 25,
+    price: 19,
+  },
+  medium: {
+    name: "Medium",
+    credits: 50,
+    price: 35,
+  },
+  large: {
+    name: "Stor",
+    credits: 100,
+    price: 59,
+  },
+} as const;
+
 export type SwishPlanType = keyof typeof SWISH_PLANS;
+export type CreditPackageType = keyof typeof CREDIT_PACKAGES;
 
 // Generate order ID
 export function generateOrderId(): string {

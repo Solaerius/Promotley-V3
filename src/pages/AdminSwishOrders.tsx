@@ -27,7 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminStatus } from "@/hooks/useAdminStatus";
-import { SWISH_PLANS, SwishPlanType } from "@/lib/swishConfig";
+import { SWISH_PLANS, CREDIT_PACKAGES, SwishPlanType, CreditPackageType } from "@/lib/swishConfig";
 
 interface SwishOrder {
   id: string;
@@ -47,6 +47,20 @@ interface SwishOrder {
   rejection_reason: string | null;
   created_at: string;
 }
+
+// Helper to get product name from plan field
+const getProductName = (plan: string): string => {
+  if (plan.startsWith("credits_")) {
+    const packageKey = plan.replace("credits_", "") as CreditPackageType;
+    const pkg = CREDIT_PACKAGES[packageKey];
+    return pkg ? `${pkg.credits} krediter (påfyllning)` : plan;
+  }
+  const planConfig = SWISH_PLANS[plan as SwishPlanType];
+  return planConfig ? planConfig.name : plan;
+};
+
+// Helper to check if order is a credit package
+const isCreditPackage = (plan: string): boolean => plan.startsWith("credits_");
 
 const AdminSwishOrders = () => {
   const navigate = useNavigate();
@@ -115,22 +129,50 @@ const AdminSwishOrders = () => {
 
       if (orderError) throw orderError;
 
-      // If user exists, update their plan
+      // If user exists, update their plan or credits
       if (selectedOrder.user_id) {
-        const planConfig = SWISH_PLANS[selectedOrder.plan as SwishPlanType];
-        if (planConfig) {
-          const { error: userError } = await supabase
-            .from("users")
-            .update({
-              plan: selectedOrder.plan as "starter" | "growth" | "pro",
-              max_credits: planConfig.credits,
-              credits_left: planConfig.credits,
-              renewal_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-            })
-            .eq("id", selectedOrder.user_id);
+        if (isCreditPackage(selectedOrder.plan)) {
+          // Credit package - add credits to existing balance
+          const packageKey = selectedOrder.plan.replace("credits_", "") as CreditPackageType;
+          const pkg = CREDIT_PACKAGES[packageKey];
+          if (pkg) {
+            // Get current credits
+            const { data: userData } = await supabase
+              .from("users")
+              .select("credits_left")
+              .eq("id", selectedOrder.user_id)
+              .single();
+            
+            const currentCredits = userData?.credits_left || 0;
+            
+            const { error: userError } = await supabase
+              .from("users")
+              .update({
+                credits_left: currentCredits + pkg.credits,
+              })
+              .eq("id", selectedOrder.user_id);
 
-          if (userError) {
-            console.error("Error updating user plan:", userError);
+            if (userError) {
+              console.error("Error updating user credits:", userError);
+            }
+          }
+        } else {
+          // Subscription plan
+          const planConfig = SWISH_PLANS[selectedOrder.plan as SwishPlanType];
+          if (planConfig) {
+            const { error: userError } = await supabase
+              .from("users")
+              .update({
+                plan: selectedOrder.plan as "starter" | "growth" | "pro",
+                max_credits: planConfig.credits,
+                credits_left: planConfig.credits,
+                renewal_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+              })
+              .eq("id", selectedOrder.user_id);
+
+            if (userError) {
+              console.error("Error updating user plan:", userError);
+            }
           }
         }
       }
@@ -327,7 +369,7 @@ const AdminSwishOrders = () => {
                       <div className="text-right hidden sm:block">
                         <p className="font-medium">{order.amount} kr</p>
                         <p className="text-sm text-muted-foreground">
-                          {SWISH_PLANS[order.plan as SwishPlanType]?.name || order.plan}
+                          {getProductName(order.plan)}
                         </p>
                       </div>
                       {getStatusBadge(order.status)}
@@ -417,7 +459,11 @@ const AdminSwishOrders = () => {
             <DialogHeader>
               <DialogTitle>Godkänn betalning</DialogTitle>
               <DialogDescription>
-                Är du säker på att du vill godkänna denna betalning? Kundens konto kommer att uppgraderas till {SWISH_PLANS[selectedOrder?.plan as SwishPlanType]?.name}.
+                Är du säker på att du vill godkänna denna betalning? {selectedOrder && (
+                  isCreditPackage(selectedOrder.plan) 
+                    ? `${CREDIT_PACKAGES[selectedOrder.plan.replace("credits_", "") as CreditPackageType]?.credits || 0} krediter kommer att läggas till på kundens konto.`
+                    : `Kundens konto kommer att uppgraderas till ${getProductName(selectedOrder.plan)}.`
+                )}
               </DialogDescription>
             </DialogHeader>
             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
