@@ -1,0 +1,359 @@
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { QRCodeSVG } from "qrcode.react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check, Loader2, ArrowLeft, Smartphone, CreditCard } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
+import { 
+  SWISH_PLANS, 
+  SwishPlanType, 
+  generateOrderId, 
+  generateSwishMessage,
+  generateSwishQRData,
+  SWISH_CONFIG
+} from "@/lib/swishConfig";
+
+const SwishCheckout = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const planParam = searchParams.get("plan") as SwishPlanType | null;
+  
+  const [step, setStep] = useState<"details" | "payment" | "confirmation">("details");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderId] = useState(generateOrderId());
+  
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    companyName: "",
+  });
+
+  // Get current user data
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setFormData(prev => ({
+          ...prev,
+          email: user.email || "",
+        }));
+        
+        // Get user profile data
+        const { data: userData } = await supabase
+          .from("users")
+          .select("company_name")
+          .eq("id", user.id)
+          .single();
+        
+        if (userData?.company_name) {
+          setFormData(prev => ({
+            ...prev,
+            companyName: userData.company_name || "",
+          }));
+        }
+      }
+    };
+    fetchUser();
+  }, []);
+
+  if (!planParam || !SWISH_PLANS[planParam]) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-20 text-center">
+          <h1 className="text-2xl font-bold mb-4">Ogiltigt paket</h1>
+          <p className="text-muted-foreground mb-6">Det valda paketet kunde inte hittas.</p>
+          <Button onClick={() => navigate("/pricing")}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Tillbaka till priser
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const plan = SWISH_PLANS[planParam];
+  const swishMessage = generateSwishMessage(plan.name, orderId);
+  const qrData = generateSwishQRData(plan.price, swishMessage);
+
+  const handleDetailsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim() || !formData.email.trim()) {
+      toast.error("Vänligen fyll i namn och e-post");
+      return;
+    }
+
+    setStep("payment");
+  };
+
+  const handlePaymentConfirm = async () => {
+    setIsSubmitting(true);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase.from("swish_orders").insert({
+        order_id: orderId,
+        user_id: user?.id || null,
+        email: formData.email,
+        name: formData.name,
+        company_name: formData.companyName || null,
+        plan: planParam,
+        amount: plan.price,
+        swish_message: swishMessage,
+        status: "pending",
+      });
+
+      if (error) throw error;
+
+      setStep("confirmation");
+      toast.success("Din betalning har registrerats!");
+    } catch (error) {
+      console.error("Error creating order:", error);
+      toast.error("Något gick fel. Försök igen.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-12 max-w-2xl">
+        <Button
+          variant="ghost"
+          onClick={() => step === "details" ? navigate("/pricing") : setStep("details")}
+          className="mb-6"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          {step === "details" ? "Tillbaka till priser" : "Tillbaka"}
+        </Button>
+
+        {/* Progress indicator */}
+        <div className="flex items-center justify-center gap-2 mb-8">
+          {["details", "payment", "confirmation"].map((s, i) => (
+            <div key={s} className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                step === s ? "bg-primary text-primary-foreground" : 
+                ["details", "payment", "confirmation"].indexOf(step) > i ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+              }`}>
+                {["details", "payment", "confirmation"].indexOf(step) > i ? <Check className="w-4 h-4" /> : i + 1}
+              </div>
+              {i < 2 && <div className={`w-12 h-0.5 mx-2 ${["details", "payment", "confirmation"].indexOf(step) > i ? "bg-primary/20" : "bg-muted"}`} />}
+            </div>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {step === "details" && (
+            <motion.div
+              key="details"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              {/* Plan summary */}
+              <div className="bg-muted/30 rounded-2xl p-6 border border-border/50">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold">{plan.name}</h2>
+                  <span className="text-2xl font-bold text-primary">{plan.price} kr/mån</span>
+                </div>
+                <ul className="space-y-2">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Check className="w-4 h-4 text-primary shrink-0" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Details form */}
+              <form onSubmit={handleDetailsSubmit} className="space-y-4">
+                <h3 className="text-lg font-semibold">Dina uppgifter</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="name">Namn *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Ditt namn"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">E-post *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="din@email.se"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="companyName">Företagsnamn / UF-klass (valfritt)</Label>
+                  <Input
+                    id="companyName"
+                    value={formData.companyName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
+                    placeholder="Ditt UF-företag"
+                  />
+                </div>
+
+                <Button type="submit" className="w-full" size="lg">
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Fortsätt till betalning
+                </Button>
+              </form>
+            </motion.div>
+          )}
+
+          {step === "payment" && (
+            <motion.div
+              key="payment"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              <div className="text-center space-y-2">
+                <h2 className="text-2xl font-bold">Betala med Swish</h2>
+                <p className="text-muted-foreground">
+                  Scanna QR-koden med Swish-appen för att betala
+                </p>
+              </div>
+
+              {/* QR Code */}
+              <div className="bg-white rounded-2xl p-8 mx-auto w-fit shadow-lg">
+                <QRCodeSVG
+                  value={qrData}
+                  size={220}
+                  level="M"
+                  includeMargin={false}
+                />
+              </div>
+
+              {/* Payment details */}
+              <div className="bg-muted/30 rounded-2xl p-6 border border-border/50 space-y-4">
+                <div className="flex items-center gap-3">
+                  <Smartphone className="w-5 h-5 text-primary" />
+                  <span className="font-medium">Swish-nummer:</span>
+                  <span className="text-muted-foreground">{SWISH_CONFIG.phoneNumber}</span>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <CreditCard className="w-5 h-5 text-primary mt-0.5" />
+                  <div>
+                    <span className="font-medium">Belopp:</span>
+                    <span className="text-muted-foreground ml-2">{plan.price} kr</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 flex items-center justify-center text-primary font-bold">M</div>
+                  <div className="flex-1">
+                    <span className="font-medium">Meddelande:</span>
+                    <p className="text-sm text-muted-foreground break-all mt-1 bg-muted/50 p-2 rounded font-mono">
+                      {swishMessage}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-muted-foreground text-center pt-2">
+                  Kontrollera att meddelandet och beloppet stämmer i Swish-appen innan du bekräftar betalningen.
+                </p>
+              </div>
+
+              {/* Confirm button */}
+              <Button
+                onClick={handlePaymentConfirm}
+                disabled={isSubmitting}
+                className="w-full"
+                size="lg"
+                variant="gradient"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Registrerar...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Jag har betalat
+                  </>
+                )}
+              </Button>
+
+              <p className="text-xs text-center text-muted-foreground">
+                Order-ID: <span className="font-mono">{orderId}</span>
+              </p>
+            </motion.div>
+          )}
+
+          {step === "confirmation" && (
+            <motion.div
+              key="confirmation"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center space-y-6"
+            >
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                <Check className="w-10 h-10 text-primary" />
+              </div>
+
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold">Tack för din beställning!</h2>
+                <p className="text-muted-foreground">
+                  Vi kommer att kontrollera din betalning och aktivera ditt konto så snart som möjligt.
+                </p>
+              </div>
+
+              <div className="bg-muted/30 rounded-2xl p-6 border border-border/50 text-left space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Order-ID:</span>
+                  <span className="font-mono">{orderId}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Paket:</span>
+                  <span>{plan.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Belopp:</span>
+                  <span>{plan.price} kr</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status:</span>
+                  <span className="text-yellow-600 dark:text-yellow-500">Väntar på verifiering</span>
+                </div>
+              </div>
+
+              <p className="text-sm text-muted-foreground">
+                Du kommer att få en bekräftelse via e-post när din betalning har godkänts.
+              </p>
+
+              <Button onClick={() => navigate("/dashboard")} className="w-full" size="lg">
+                Gå till Dashboard
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
+
+export default SwishCheckout;

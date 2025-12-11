@@ -956,6 +956,66 @@ export type Database = {
           },
         ]
       }
+      swish_orders: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          company_name: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          order_id: string
+          plan: string
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          status: string
+          swish_message: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          company_name?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          order_id: string
+          plan: string
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          status?: string
+          swish_message: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          company_name?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          order_id?: string
+          plan?: string
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          status?: string
+          swish_message?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       tokens: {
         Row: {
           access_token_enc: string
