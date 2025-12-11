@@ -18,14 +18,13 @@ import Calendar from "./pages/Calendar";
 import AIPage from "./pages/AIPage";
 import AccountPage from "./pages/AccountPage";
 import Pricing from "./pages/Pricing";
-import Checkout from "./pages/Checkout";
-import BuyCredits from "./pages/BuyCredits";
-import BillingSuccess from "./pages/BillingSuccess";
+import SwishCheckout from "./pages/SwishCheckout";
 import AdminChat from "./pages/AdminChat";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminNotificationSettings from "./pages/AdminNotificationSettings";
 import AdminUserManagement from "./pages/AdminUserManagement";
 import AdminBanManagement from "./pages/AdminBanManagement";
+import AdminSwishOrders from "./pages/AdminSwishOrders";
 import OrganizationOnboarding from "./pages/OrganizationOnboarding";
 import OrganizationSettings from "./pages/OrganizationSettings";
 import CreateOrganization from "./pages/CreateOrganization";
@@ -148,31 +147,27 @@ const App = () => (
                 </AdminRoute>
               } 
             />
+            <Route 
+              path="/admin/swish" 
+              element={
+                <AdminRoute>
+                  <AdminSwishOrders />
+                </AdminRoute>
+              } 
+            />
             <Route path="/pricing" element={<Pricing />} />
             <Route 
-              path="/checkout" 
-              element={
-                <RequireVerifiedEmail>
-                  <Checkout />
-                </RequireVerifiedEmail>
-              } 
-            />
-            <Route 
-              path="/buy-credits" 
-              element={
-                <RequireVerifiedEmail>
-                  <BuyCredits />
-                </RequireVerifiedEmail>
-              } 
-            />
-            <Route 
-              path="/billing/success" 
+              path="/swish-checkout" 
               element={
                 <ProtectedRoute>
-                  <BillingSuccess />
+                  <SwishCheckout />
                 </ProtectedRoute>
               } 
             />
+            {/* Redirect old checkout routes to Swish */}
+            <Route path="/checkout" element={<Navigate to="/pricing" replace />} />
+            <Route path="/buy-credits" element={<Navigate to="/pricing" replace />} />
+            <Route path="/billing/success" element={<Navigate to="/dashboard" replace />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             {/* Organization routes */}

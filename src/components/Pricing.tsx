@@ -122,13 +122,13 @@ const Pricing = () => {
                 </ul>
 
                 {/* CTA */}
-                <Link to="/auth" className="block pt-2">
+                <Link to={`/swish-checkout?plan=${index === 0 ? 'starter' : index === 1 ? 'growth' : 'pro'}`} className="block pt-2">
                   <Button
                     variant={plan.popular ? "gradient" : "outline"}
                     className="w-full"
                     size="lg"
                   >
-                    Starta gratis
+                    Betala med Swish
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
