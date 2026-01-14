@@ -4,7 +4,15 @@ const ProblemSection = () => {
   return <section className="py-24 md:py-32 px-4 bg-background font-poppins">
       <div className="container mx-auto max-w-6xl">
         {/* Section header */}
-        
+        <div className="max-w-3xl mx-auto text-center mb-16 md:mb-20 space-y-4">
+          
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold px-2 leading-tight text-balance">
+            Du vet känslan när du lägger tid på{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-primary">
+              content som ingen ser?
+            </span>
+          </h2>
+        </div>
 
         {/* Comparison cards */}
         <div className="grid md:grid-cols-2 gap-6 md:gap-8 items-stretch">
