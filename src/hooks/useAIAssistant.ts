@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -10,8 +10,9 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   message: string;
   timestamp: string;
-  plan?: any; // Marketing plan if present
+  plan?: any;
   requestId?: string;
+  isOptimistic?: boolean;
 }
 
 interface MessageMeta {
@@ -21,36 +22,53 @@ interface MessageMeta {
   requestId?: string;
 }
 
-export const useAIAssistant = () => {
+export const useAIAssistant = (conversationId: string | null) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
 
-  const fetchHistory = async () => {
+  const fetchMessages = useCallback(async () => {
+    if (!conversationId) {
+      setMessages([]);
+      return;
+    }
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      
       if (!session) {
         setMessages([]);
         return;
       }
 
-      const { data: result, error } = await supabase.functions.invoke('ai-assistant/history', {
-        method: 'GET'
-      });
+      const { data, error: fetchError } = await supabase
+        .from('ai_chat_messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
 
-      setMessages(result || []);
+      setMessages(
+        (data || []).map((m: any) => ({
+          id: m.id,
+          role: m.role,
+          message: m.message,
+          timestamp: m.created_at,
+          plan: m.plan,
+          requestId: m.request_id,
+        }))
+      );
     } catch (err) {
       setError(err as Error);
-      console.error('Error fetching chat history:', err);
+      console.error('Error fetching messages:', err);
       setMessages([]);
     }
-  };
+  }, [conversationId]);
 
   const sendMessage = async (message: string, meta?: MessageMeta) => {
+    if (!conversationId) return;
+
     try {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
@@ -65,102 +83,82 @@ export const useAIAssistant = () => {
         role: 'user',
         message,
         timestamp: new Date().toISOString(),
+        isOptimistic: true,
       };
       setMessages(prev => [...prev, userMessage]);
 
-      const { data: result, error } = await supabase.functions.invoke('ai-assistant/chat', {
+      // Save user message to DB
+      await supabase.from('ai_chat_messages').insert({
+        conversation_id: conversationId,
+        role: 'user',
+        message,
+      });
+
+      const { data: result, error: invokeError } = await supabase.functions.invoke('ai-assistant/chat', {
         method: 'POST',
-        body: { 
-          message, 
-          history: messages,
+        body: {
+          message,
+          history: messages.filter(m => !m.isOptimistic),
           calendarContextDigest: contextData?.digest || [],
           lastUpdatedAt: contextData?.lastUpdatedAt,
-          meta // Include metadata for special actions like marketing plan
+          meta,
+          conversationId,
         }
       });
 
-      if (error) throw error;
+      if (invokeError) throw invokeError;
 
-      // Build AI response message
+      // Save AI response to DB
+      const aiInsert: any = {
+        conversation_id: conversationId,
+        role: 'assistant',
+        message: result.response,
+      };
+      if (result.plan) {
+        aiInsert.plan = result.plan;
+        aiInsert.request_id = meta?.requestId || `plan-${Date.now()}`;
+      }
+      await supabase.from('ai_chat_messages').insert(aiInsert);
+
+      // Build AI response message for UI
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         message: result.response,
         timestamp: new Date().toISOString(),
       };
-
-      // If a marketing plan was generated, attach it to the message
       if (result.plan) {
         aiMessage.plan = result.plan;
-        aiMessage.requestId = meta?.requestId || `plan-${Date.now()}`;
+        aiMessage.requestId = aiInsert.request_id;
       }
 
-      setMessages(prev => [...prev, aiMessage]);
+      // Replace optimistic messages with real ones
+      setMessages(prev => [
+        ...prev.filter(m => !m.isOptimistic),
+        { ...userMessage, isOptimistic: false },
+        aiMessage,
+      ]);
 
       // Trigger credit update
       creditUpdateEvent.dispatchEvent(new Event('creditsChanged'));
+
+      // Auto-update conversation title from first message
+      if (messages.length === 0) {
+        const title = message.length > 40 ? message.slice(0, 40) + '…' : message;
+        await supabase
+          .from('ai_conversations')
+          .update({ title })
+          .eq('id', conversationId);
+      }
 
       return result;
     } catch (err) {
       console.error('Error sending message:', err);
+      // Remove optimistic messages on error
+      setMessages(prev => prev.filter(m => !m.isOptimistic));
       toast({
         title: "Fel",
         description: "Kunde inte skicka meddelande.",
-        variant: "destructive",
-      });
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createMarketingPlan = async () => {
-    try {
-      setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
-      // Fetch calendar context
-      const { data: contextData } = await supabase.functions.invoke('calendar/context');
-
-      // Add system message
-      const systemMessage: ChatMessage = {
-        id: Date.now().toString(),
-        role: 'assistant',
-        message: 'Jag skapar en marknadsföringsplan baserat på dina mål och kalender...',
-        timestamp: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev, systemMessage]);
-
-      const { data: result, error } = await supabase.functions.invoke('ai-assistant/create-marketing-plan', {
-        method: 'POST',
-        body: {
-          targets: ['reach', 'engagement'],
-          timeframe: 'month',
-          calendarContextDigest: contextData?.digest || []
-        }
-      });
-
-      if (error) throw error;
-
-      // Add plan to chat
-      const planMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        message: result.explanation || 'Plan skapad!',
-        timestamp: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev, planMessage]);
-
-      // Trigger credit update
-      creditUpdateEvent.dispatchEvent(new Event('creditsChanged'));
-
-      return result;
-    } catch (err) {
-      console.error('Error creating marketing plan:', err);
-      toast({
-        title: "Fel",
-        description: "Kunde inte skapa marknadsföringsplan.",
         variant: "destructive",
       });
       throw err;
@@ -175,7 +173,6 @@ export const useAIAssistant = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      // Normalize posts for bulk_create
       const normalizedPosts = (plan.posts || []).map((p: any) => {
         const channel = (p.channel || p.platform || '').toLowerCase();
         const d = new Date(p.date);
@@ -187,38 +184,33 @@ export const useAIAssistant = () => {
         };
       });
 
-      console.debug('[implementPlan] Sending posts:', normalizedPosts);
-
-      const { data: result, error } = await supabase.functions.invoke('calendar', {
-        headers: { 
-          'Authorization': `Bearer ${session.access_token}` 
-        },
-        body: {
-          action: 'bulk_create',
-          data: { posts: normalizedPosts, requestId }
-        }
+      const { data: result, error: invokeError } = await supabase.functions.invoke('calendar', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: { action: 'bulk_create', data: { posts: normalizedPosts, requestId } }
       });
 
-      if (error) {
-        console.error('[implementPlan] Error:', error);
-        throw error;
-      }
-
-      console.debug('[implementPlan] Result:', result);
+      if (invokeError) throw invokeError;
 
       toast({
         title: "Plan implementerad!",
         description: `${result.created?.length || 0} inlägg skapade.`,
       });
 
-      // Add confirmation message
-      const confirmMessage: ChatMessage = {
-        id: Date.now().toString(),
-        role: 'assistant',
-        message: `Plan implementerad! ${result.created?.length || 0} inlägg har lagts till i kalendern.`,
-        timestamp: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev, confirmMessage]);
+      if (conversationId) {
+        await supabase.from('ai_chat_messages').insert({
+          conversation_id: conversationId,
+          role: 'assistant',
+          message: `Plan implementerad! ${result.created?.length || 0} inlägg har lagts till i kalendern.`,
+        });
+
+        const confirmMessage: ChatMessage = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          message: `Plan implementerad! ${result.created?.length || 0} inlägg har lagts till i kalendern.`,
+          timestamp: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, confirmMessage]);
+      }
 
       return result;
     } catch (err) {
@@ -234,75 +226,9 @@ export const useAIAssistant = () => {
     }
   };
 
-  const generatePlan = async () => {
-    try {
-      setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
-      const { data: result, error } = await supabase.functions.invoke('ai-assistant/generate-plan', {
-        method: 'POST'
-      });
-
-      if (error) throw error;
-
-      if (result.placeholder) {
-        toast({
-          title: "Kommer snart",
-          description: result.message,
-        });
-      }
-
-      return result;
-    } catch (err) {
-      console.error('Error generating plan:', err);
-      toast({
-        title: "Fel",
-        description: "Kunde inte generera innehållsplan.",
-        variant: "destructive",
-      });
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const analyzeStats = async () => {
-    try {
-      setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
-      const { data: result, error } = await supabase.functions.invoke('ai-assistant/analyze', {
-        method: 'POST'
-      });
-
-      if (error) throw error;
-
-      if (result.placeholder) {
-        toast({
-          title: "Kommer snart",
-          description: result.message,
-        });
-      }
-
-      return result;
-    } catch (err) {
-      console.error('Error analyzing stats:', err);
-      toast({
-        title: "Fel",
-        description: "Kunde inte analysera statistik.",
-        variant: "destructive",
-      });
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchHistory();
-  }, []);
+    fetchMessages();
+  }, [fetchMessages]);
 
   const hasMessages = messages.length > 0;
 
@@ -312,10 +238,7 @@ export const useAIAssistant = () => {
     error,
     hasMessages,
     sendMessage,
-    generatePlan,
-    analyzeStats,
-    fetchHistory,
-    createMarketingPlan,
     implementPlan,
+    fetchMessages,
   };
 };
