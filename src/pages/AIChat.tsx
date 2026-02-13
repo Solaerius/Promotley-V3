@@ -45,7 +45,7 @@ interface Message {
 const AIChat = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { messages, loading, sendMessage, analyzeStats, implementPlan } = useAIAssistant();
+  const { messages, loading, sendMessage, implementPlan } = useAIAssistant(null);
   const { credits } = useUserCredits();
   const { profile: aiProfile, loading: aiProfileLoading } = useAIProfile();
   const [inputMessage, setInputMessage] = useState("");
