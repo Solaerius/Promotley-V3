@@ -150,6 +150,18 @@ serve(async (req) => {
       );
     }
 
+    // Rate limiting
+    const { data: rateLimitOk } = await supabaseAdmin.rpc('check_rate_limit', {
+      _user_id: user.id,
+      _endpoint: 'send-org-invite'
+    });
+    if (rateLimitOk === false) {
+      return new Response(
+        JSON.stringify({ error: "rate_limit_exceeded" }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Parse request
     const body: RequestBody = await req.json();
     const { email, organizationName, inviteCode, inviterEmail } = body;

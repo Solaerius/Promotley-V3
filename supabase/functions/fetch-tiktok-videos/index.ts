@@ -70,6 +70,18 @@ Deno.serve(async (req) => {
       // No body
     }
 
+    // Rate limiting
+    const { data: rateLimitOk } = await supabase.rpc('check_rate_limit', {
+      _user_id: user.id,
+      _endpoint: 'fetch-tiktok-videos'
+    });
+    if (rateLimitOk === false) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Rate limit exceeded' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Get token
     const { data: tokenData } = await supabase
       .from('tokens')

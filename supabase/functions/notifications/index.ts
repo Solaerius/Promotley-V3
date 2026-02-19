@@ -41,6 +41,18 @@ serve(async (req) => {
       );
     }
 
+    // Rate limiting
+    const { data: rateLimitOk } = await adminClient.rpc('check_rate_limit', {
+      _user_id: user.id,
+      _endpoint: 'notifications'
+    });
+    if (rateLimitOk === false) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // DB client that respects RLS using the user's JWT
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',

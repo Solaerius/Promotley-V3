@@ -41,6 +41,18 @@ serve(async (req) => {
       );
     }
 
+    // Rate limiting
+    const { data: rateLimitOk } = await adminClient.rpc('check_rate_limit', {
+      _user_id: user.id,
+      _endpoint: 'calendar'
+    });
+    if (rateLimitOk === false) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // 2) DB client with anon key + forwarded JWT for RLS
     const db = createClient(URL, ANON, {
       global: { headers: { Authorization: `Bearer ${jwt}` } },

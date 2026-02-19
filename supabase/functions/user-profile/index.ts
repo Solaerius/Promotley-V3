@@ -31,6 +31,23 @@ serve(async (req) => {
       );
     }
 
+    // Rate limiting - use service role client for RPC
+    const adminClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
+    );
+    const { data: rateLimitOk } = await adminClient.rpc('check_rate_limit', {
+      _user_id: user.id,
+      _endpoint: 'user-profile'
+    });
+    if (rateLimitOk === false) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const url = new URL(req.url);
     const pathParts = url.pathname.split('/').filter(Boolean);
 

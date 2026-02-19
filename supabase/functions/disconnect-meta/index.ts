@@ -61,6 +61,20 @@ Deno.serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub;
+
+    // Rate limiting
+    const rateLimitClient = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: rateLimitOk } = await rateLimitClient.rpc('check_rate_limit', {
+      _user_id: userId,
+      _endpoint: 'disconnect-meta'
+    });
+    if (rateLimitOk === false) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { provider } = await req.json();
 
     if (!provider || !["meta_ig", "meta_fb"].includes(provider)) {
