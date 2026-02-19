@@ -98,8 +98,25 @@ export default function AuthCallback() {
                 console.warn("Auto-join org failed:", err);
               }
             }
-            
-            // Redirect after showing success
+
+            // Auto-redeem promo code from registration metadata
+            const promoCode = session.user.user_metadata?.promo_code;
+            if (promoCode) {
+              try {
+                const { data: redeemData } = await supabase.functions.invoke("redeem-promotion", {
+                  body: { code: promoCode },
+                });
+                if (redeemData?.success) {
+                  toast({
+                    title: "🎉 Kampanjkod inlöst!",
+                    description: `Du fick ${redeemData.credits_given} gratiskrediter!`,
+                  });
+                }
+                // Silent fail if invalid — user already got in
+              } catch (err) {
+                console.warn("Auto-redeem promo failed:", err);
+              }
+            }
             setTimeout(() => {
               navigate("/dashboard", { replace: true });
             }, 2000);

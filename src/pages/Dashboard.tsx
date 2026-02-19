@@ -14,6 +14,7 @@ import {
   MessageSquare
 } from "lucide-react";
 import { ConnectionManager } from "@/components/ConnectionManager";
+import PromoCodeInput from "@/components/PromoCodeInput";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useTikTokData } from "@/hooks/useTikTokData";
 import { useMetaData } from "@/hooks/useMetaData";
@@ -385,6 +386,21 @@ const Dashboard = () => {
         >
           <ConnectionManager />
         </motion.div>
+
+        {/* Promo code banner for free_trial users with low credits */}
+        {credits && credits.plan === 'free_trial' && credits.credits_left < 5 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.42, duration: 0.4 }}
+            className="liquid-glass-light p-5"
+          >
+            <PromoCodeInput
+              variant="card"
+              onSuccess={() => {}}
+            />
+          </motion.div>
+        )}
 
         {/* Upgrade CTA - Vibrant gradient */}
         {credits && credits.plan === 'starter' && (
