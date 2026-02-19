@@ -69,6 +69,18 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Rate limiting
+    const { data: rateLimitOk } = await supabase.rpc('check_rate_limit', {
+      _user_id: user.id,
+      _endpoint: 'fetch-meta-data'
+    });
+    if (rateLimitOk === false) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Rate limit exceeded' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log('Fetching Meta data for user:', user.id);
 
     // Get Instagram token
