@@ -9,7 +9,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, companyName?: string, inviteCode?: string, emailPrefs?: { newsletter: boolean; offers: boolean }) => Promise<{ error: any; needsVerification?: boolean }>;
+  signUp: (email: string, password: string, companyName?: string, inviteCode?: string, emailPrefs?: { newsletter: boolean; offers: boolean }, promoCode?: string) => Promise<{ error: any; needsVerification?: boolean }>;
   signOut: () => Promise<void>;
 }
 
@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, companyName?: string, inviteCode?: string, emailPrefs?: { newsletter: boolean; offers: boolean }) => {
+  const signUp = async (email: string, password: string, companyName?: string, inviteCode?: string, emailPrefs?: { newsletter: boolean; offers: boolean }, promoCode?: string) => {
     const redirectUrl = `${window.location.origin}/auth/callback`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -101,6 +101,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         data: {
           company_name: companyName,
           invite_code: inviteCode || undefined,
+          promo_code: promoCode || undefined,
         }
       }
     });

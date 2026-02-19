@@ -37,6 +37,7 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [inviteCode, setInviteCode] = useState("");
+  const [promoCode, setPromoCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -190,7 +191,7 @@ const Auth = () => {
       // Perform authentication
       const result = isLogin
         ? await signIn(email, password)
-        : await signUp(email, password, isCreatingCompany ? companyName : undefined, !isCreatingCompany && inviteCode ? inviteCode : undefined, { newsletter: emailNewsletter, offers: emailOffers });
+        : await signUp(email, password, isCreatingCompany ? companyName : undefined, !isCreatingCompany && inviteCode ? inviteCode : undefined, { newsletter: emailNewsletter, offers: emailOffers }, promoCode.trim() || undefined);
 
       if (result.error) {
         // Handle specific error messages
@@ -563,6 +564,26 @@ const Auth = () => {
               {errors.confirmPassword && (
                 <p className="text-sm text-destructive">{errors.confirmPassword}</p>
               )}
+            </div>
+          )}
+
+          {!isLogin && (
+            <div className="space-y-2">
+              <Label htmlFor="promoCode" className="text-sm">
+                Kampanjkod <span className="text-xs text-muted-foreground">(valfritt)</span>
+              </Label>
+              <Input
+                id="promoCode"
+                type="text"
+                placeholder="T.ex. FREEUF50"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                disabled={isSubmitting}
+                maxLength={50}
+              />
+              <p className="text-xs text-muted-foreground">
+                Har du fått en kod? Den löses in automatiskt efter verifiering.
+              </p>
             </div>
           )}
 

@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProfileImageUpload } from "@/components/ProfileImageUpload";
 import { AIProfileProgress } from "@/components/AIProfileProgress";
 import CreditsDisplay from "@/components/CreditsDisplay";
+import PromoCodeInput from "@/components/PromoCodeInput";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { SWISH_PLANS, CREDIT_PACKAGES } from "@/lib/swishConfig";
@@ -301,6 +302,11 @@ const AccountContent = () => {
                 Avsluta prenumeration
               </Button>
             )}
+          </div>
+
+          {/* Promo code redemption */}
+          <div className="pt-2 border-t border-border/50">
+            <PromoCodeInput variant="inline" onSuccess={() => refetchCredits()} />
           </div>
         </div>
       </motion.section>

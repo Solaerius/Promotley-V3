@@ -5,6 +5,8 @@ import { Link, useNavigate } from "react-router-dom";
 import PricingFAQ from "@/components/PricingFAQ";
 import Navbar from "@/components/Navbar";
 import { useUserCredits } from "@/hooks/useUserCredits";
+import { useAuth } from "@/hooks/useAuth";
+import PromoCodeInput from "@/components/PromoCodeInput";
 
 const plans = [
   {
@@ -66,7 +68,8 @@ const plans = [
 
 const Pricing = () => {
   const navigate = useNavigate();
-  const { credits, getTierLevel } = useUserCredits();
+  const { credits, getTierLevel, refetch: refetchCredits } = useUserCredits();
+  const { user } = useAuth();
 
   const currentTierLevel = credits?.plan ? getTierLevel(credits.plan) : 0;
 
@@ -184,6 +187,23 @@ const Pricing = () => {
           <p className="text-center text-muted-foreground mt-8 md:mt-12 text-sm md:text-lg px-4">
             Prova gratis i 7 dagar · Ingen betalmetod krävs · Avsluta när du vill
           </p>
+
+          {/* Promo code section */}
+          <div className="max-w-md mx-auto mt-8">
+            {user ? (
+              <PromoCodeInput variant="card" onSuccess={() => refetchCredits()} />
+            ) : (
+              <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-6 text-center space-y-3">
+                <p className="font-semibold">Har du en kampanjkod?</p>
+                <p className="text-sm text-muted-foreground">
+                  Skapa ett konto först för att lösa in din kod
+                </p>
+                <Button variant="outline" onClick={() => navigate('/auth?mode=register')}>
+                  Skapa konto
+                </Button>
+              </div>
+            )}
+          </div>
 
           {/* FAQ Section */}
           <PricingFAQ />
