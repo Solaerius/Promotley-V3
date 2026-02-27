@@ -12,7 +12,7 @@ const plans = [
     model: "gpt-4o-mini",
     description: "Perfekt för nya UF-företag som precis börjat",
     features: [
-      "AI-modell: GPT-4o Mini",
+      "AI-modell: 4o Mini",
       "50 AI-krediter per månad",
       "Enkel strategi (2 poster/vecka)",
       "3 branschtips per månad",
@@ -27,7 +27,7 @@ const plans = [
     model: "gpt-4.1-mini",
     description: "Idealisk för snabbväxande UF-team",
     features: [
-      "AI-modell: GPT-4.1 Mini",
+      "AI-modell: 4.1 Mini",
       "100 AI-krediter per månad",
       "Personlig innehållskalender",
       "5 content-idéer per vecka",
@@ -42,9 +42,9 @@ const plans = [
     model: "gpt-4.1-mini + gpt-4o",
     description: "För etablerade företag med stora ambitioner",
     features: [
-      "AI-modell: GPT-4.1 Mini + GPT-4o Premium",
+      "AI-modell: 4.1 Mini + 4o Premium",
       "200 AI-krediter per månad",
-      "Premium AI för djupanalyser (GPT-4o)",
+      "Premium AI för djupanalyser (4o)",
       "Komplett strategi + kalender",
       "Konkurrentanalys inkluderad",
       "Premium rapporter & insikter",
@@ -58,20 +58,23 @@ const Pricing = () => {
     <section id="pricing" className="relative py-24 md:py-32 px-4 overflow-hidden font-poppins">
       {/* Gradient background */}
       <div className="absolute inset-0 bg-gradient-diagonal" />
-      
+
       {/* Fluid blur orbs */}
       <div className="blur-orb blur-orb-primary w-[700px] h-[700px] -top-48 left-1/4 animate-glow-pulse" />
-      <div className="blur-orb blur-orb-secondary w-[500px] h-[500px] bottom-0 right-0 animate-glow-pulse" style={{ animationDelay: '1.5s' }} />
-      
+      <div
+        className="blur-orb blur-orb-secondary w-[500px] h-[500px] bottom-0 right-0 animate-glow-pulse"
+        style={{ animationDelay: "1.5s" }}
+      />
+
       {/* Top blend */}
-      <div 
+      <div
         className="absolute top-0 left-0 right-0 h-48 pointer-events-none"
         style={{
-          background: 'linear-gradient(to bottom, hsl(344 55% 12%) 0%, transparent 100%)',
-          filter: 'blur(30px)',
+          background: "linear-gradient(to bottom, hsl(344 55% 12%) 0%, transparent 100%)",
+          filter: "blur(30px)",
         }}
       />
-      
+
       <div className="container mx-auto relative z-10">
         {/* Section header */}
         <div className="max-w-3xl mx-auto text-center mb-16 md:mb-20 space-y-4">
@@ -80,14 +83,9 @@ const Pricing = () => {
             <span className="text-sm font-medium text-white">Priser</span>
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold px-2 leading-tight text-white">
-            Enkla priser,{" "}
-            <span className="text-gradient">
-              kraftfulla resultat
-            </span>
+            Enkla priser, <span className="text-gradient">kraftfulla resultat</span>
           </h2>
-          <p className="text-base md:text-lg text-white/70 px-4">
-            Välj den plan som passar ditt företags tillväxtfas
-          </p>
+          <p className="text-base md:text-lg text-white/70 px-4">Välj den plan som passar ditt företags tillväxtfas</p>
         </div>
 
         {/* Pricing cards */}
@@ -141,11 +139,14 @@ const Pricing = () => {
                 </ul>
 
                 {/* CTA */}
-                <Link to={`/swish-checkout?plan=${index === 0 ? 'starter' : index === 1 ? 'growth' : 'pro'}`} className="block pt-2">
+                <Link
+                  to={`/swish-checkout?plan=${index === 0 ? "starter" : index === 1 ? "growth" : "pro"}`}
+                  className="block pt-2"
+                >
                   <Button
                     className={`w-full ${
-                      plan.popular 
-                        ? "bg-white text-accent hover:bg-white/90 shadow-lg" 
+                      plan.popular
+                        ? "bg-white text-accent hover:bg-white/90 shadow-lg"
                         : "bg-white/10 text-white hover:bg-white/20 border border-white/20"
                     }`}
                     size="lg"
@@ -167,13 +168,13 @@ const Pricing = () => {
         {/* FAQ Section */}
         <PricingFAQ />
       </div>
-      
+
       {/* Bottom blend */}
-      <div 
+      <div
         className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none"
         style={{
-          background: 'linear-gradient(to top, hsl(344 55% 12%) 0%, transparent 100%)',
-          filter: 'blur(30px)',
+          background: "linear-gradient(to top, hsl(344 55% 12%) 0%, transparent 100%)",
+          filter: "blur(30px)",
         }}
       />
     </section>
