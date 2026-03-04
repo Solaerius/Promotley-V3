@@ -30,16 +30,30 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
     <Body style={main}>
       <Container style={card}>
         <Section style={headerBand}>
-          <Img src={LOGO_URL} alt="Promotely" width="120" height="auto" style={logoStyle} />
+          <table cellPadding="0" cellSpacing="0" style={{ width: '100%' }}>
+            <tr>
+              <td style={{ paddingLeft: '32px', paddingTop: '20px', paddingBottom: '20px' }}>
+                <table cellPadding="0" cellSpacing="0">
+                  <tr>
+                    <td style={{ verticalAlign: 'middle' }}>
+                      <Img src={LOGO_URL} alt="Promotely" width="40" height="40" style={{ display: 'block' }} />
+                    </td>
+                    <td style={{ verticalAlign: 'middle', paddingLeft: '12px' }}>
+                      <Text style={brandName}>Promotely UF</Text>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
         </Section>
 
         <Section style={content}>
-          <Heading style={h1}>Din kod 🔒</Heading>
+          <Heading style={h1}>Hej!</Heading>
           <Text style={text}>
             Ange koden nedan i appen för att bekräfta din identitet:
           </Text>
 
-          {/* Code card */}
           <Section style={codeCard}>
             <Text style={codeText}>{token}</Text>
           </Section>
@@ -82,8 +96,8 @@ const card = {
   backgroundColor: '#ffffff', borderRadius: '20px', maxWidth: '480px', margin: '0 auto',
   boxShadow: '0 8px 40px rgba(53, 20, 29, 0.08), 0 1px 3px rgba(53, 20, 29, 0.04)', overflow: 'hidden' as const,
 }
-const headerBand = { background: 'linear-gradient(135deg, #EE593D 0%, #952A5E 100%)', padding: '32px 0 28px', textAlign: 'center' as const }
-const logoStyle = { margin: '0 auto', display: 'block' as const }
+const headerBand = { backgroundColor: '#ffffff', borderBottom: '1px solid #F0E6E8' }
+const brandName = { fontSize: '18px', fontWeight: '700' as const, color: '#952A5E', margin: '0', lineHeight: '1' }
 const content = { padding: '36px 32px 28px' }
 const h1 = { fontSize: '22px', fontWeight: '700' as const, color: '#35141D', margin: '0 0 16px', lineHeight: '1.3' }
 const text = { fontSize: '15px', color: '#5C3D45', lineHeight: '1.7', margin: '0 0 18px' }

@@ -32,15 +32,30 @@ export const InviteEmail = ({
 }: InviteEmailProps) => (
   <Html lang="sv" dir="ltr">
     <Head />
-    <Preview>Någon tycker du är grym – du har blivit inbjuden!</Preview>
+    <Preview>Du har blivit inbjuden till Promotely!</Preview>
     <Body style={main}>
       <Container style={card}>
         <Section style={headerBand}>
-          <Img src={LOGO_URL} alt={siteName} width="120" height="auto" style={logoStyle} />
+          <table cellPadding="0" cellSpacing="0" style={{ width: '100%' }}>
+            <tr>
+              <td style={{ paddingLeft: '32px', paddingTop: '20px', paddingBottom: '20px' }}>
+                <table cellPadding="0" cellSpacing="0">
+                  <tr>
+                    <td style={{ verticalAlign: 'middle' }}>
+                      <Img src={LOGO_URL} alt={siteName} width="40" height="40" style={{ display: 'block' }} />
+                    </td>
+                    <td style={{ verticalAlign: 'middle', paddingLeft: '12px' }}>
+                      <Text style={brandName}>Promotely UF</Text>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
         </Section>
 
         <Section style={content}>
-          <Heading style={h1}>Någon tycker du är grym! 🎉</Heading>
+          <Heading style={h1}>Hej!</Heading>
           <Text style={text}>
             Du har blivit inbjuden att gå med i{' '}
             <Link href={siteUrl} style={link}><strong>{siteName}</strong></Link>
@@ -52,14 +67,14 @@ export const InviteEmail = ({
 
           <Section style={buttonContainer}>
             <Button style={button} href={confirmationUrl}>
-              Acceptera & gå med
+              Acceptera och gå med
             </Button>
           </Section>
 
           <Text style={muted}>
-            Knappen fungerar inte? Kopiera den här länken till din webbläsare:
+            Knappen fungerar inte? Tryck på länken nedan:
           </Text>
-          <Text style={urlText}>{confirmationUrl}</Text>
+          <Link href={confirmationUrl} style={fallbackLink}>Tryck här</Link>
         </Section>
 
         <Hr style={divider} />
@@ -95,8 +110,8 @@ const card = {
   backgroundColor: '#ffffff', borderRadius: '20px', maxWidth: '480px', margin: '0 auto',
   boxShadow: '0 8px 40px rgba(53, 20, 29, 0.08), 0 1px 3px rgba(53, 20, 29, 0.04)', overflow: 'hidden' as const,
 }
-const headerBand = { background: 'linear-gradient(135deg, #EE593D 0%, #952A5E 100%)', padding: '32px 0 28px', textAlign: 'center' as const }
-const logoStyle = { margin: '0 auto', display: 'block' as const }
+const headerBand = { backgroundColor: '#ffffff', borderBottom: '1px solid #F0E6E8' }
+const brandName = { fontSize: '18px', fontWeight: '700' as const, color: '#952A5E', margin: '0', lineHeight: '1' }
 const content = { padding: '36px 32px 28px' }
 const h1 = { fontSize: '22px', fontWeight: '700' as const, color: '#35141D', margin: '0 0 16px', lineHeight: '1.3' }
 const text = { fontSize: '15px', color: '#5C3D45', lineHeight: '1.7', margin: '0 0 18px' }
@@ -108,7 +123,7 @@ const button = {
   borderRadius: '16px', padding: '16px 36px', textDecoration: 'none', display: 'inline-block' as const,
 }
 const muted = { fontSize: '12px', color: '#9B8A8E', lineHeight: '1.5', margin: '0 0 4px' }
-const urlText = { fontSize: '11px', color: '#B8A5AA', lineHeight: '1.4', wordBreak: 'break-all' as const, margin: '0 0 8px' }
+const fallbackLink = { fontSize: '12px', color: '#952A5E', textDecoration: 'underline' }
 const divider = { borderTop: '1px solid #F0E6E8', margin: '0 32px' }
 const footer = { padding: '24px 32px 32px', textAlign: 'center' as const }
 const footerLogo = { margin: '0 auto 12px', display: 'block' as const, opacity: '0.6' }

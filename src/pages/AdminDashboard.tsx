@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { MessageCircle, AlertCircle, Bell, Users, CheckCircle, XCircle, BookOpen, Loader2, Shield, CreditCard, Gift } from "lucide-react";
+import { MessageCircle, AlertCircle, Bell, Users, CheckCircle, XCircle, BookOpen, Loader2, Shield, CreditCard, Gift, Mail } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -357,6 +357,12 @@ const AdminDashboard = () => {
               <Button variant="outline" className="w-full">
                 <Gift className="w-4 h-4 mr-2" />
                 Kampanjer
+              </Button>
+            </Link>
+            <Link to="/admin/email">
+              <Button variant="outline" className="w-full">
+                <Mail className="w-4 h-4 mr-2" />
+                E-postutskick
               </Button>
             </Link>
           </CardContent>
