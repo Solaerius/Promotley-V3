@@ -18,6 +18,9 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { useUserCredits } from "@/hooks/useUserCredits";
+import { Coins } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -63,6 +66,8 @@ export function DashboardNavbar({ showBackButton, title }: DashboardNavbarProps)
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const { position, cyclePosition, getPositionLabel } = useNavbarPosition();
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+
+  const { credits } = useUserCredits();
 
   useEffect(() => {
     const fetchUserAvatar = async () => {
@@ -266,6 +271,31 @@ export function DashboardNavbar({ showBackButton, title }: DashboardNavbarProps)
                   <p className="text-xs font-medium truncate">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
+                {/* Credit gauge */}
+                <div className="px-3 py-2">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[11px] text-muted-foreground">Krediter</span>
+                    <span className="text-[11px] font-semibold">{credits?.credits_left ?? 0} / {credits?.max_credits ?? 0}</span>
+                  </div>
+                  <Progress 
+                    value={credits?.max_credits ? (credits.credits_left / credits.max_credits) * 100 : 0} 
+                    className="h-2" 
+                  />
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-[10px] text-muted-foreground">
+                      Förnyas {credits?.renewal_date ? new Date(credits.renewal_date).toLocaleDateString('sv-SE') : '—'}
+                    </span>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-5 text-[10px] px-2 rounded"
+                      onClick={() => navigate('/buy-credits')}
+                    >
+                      <Coins className="w-3 h-3 mr-1" />
+                      Köp
+                    </Button>
+                  </div>
+                </div>
                 <DropdownMenuItem asChild>
                   <Link to="/account" className="cursor-pointer text-sm">
                     <Settings className="mr-2 h-3.5 w-3.5" />
@@ -453,6 +483,31 @@ export function DashboardNavbar({ showBackButton, title }: DashboardNavbarProps)
                     <p className="text-xs font-medium truncate">{user?.email}</p>
                   </div>
                   <DropdownMenuSeparator />
+                  {/* Credit gauge */}
+                  <div className="px-3 py-2">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[11px] text-muted-foreground">Krediter</span>
+                      <span className="text-[11px] font-semibold">{credits?.credits_left ?? 0} / {credits?.max_credits ?? 0}</span>
+                    </div>
+                    <Progress 
+                      value={credits?.max_credits ? (credits.credits_left / credits.max_credits) * 100 : 0} 
+                      className="h-2" 
+                    />
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-[10px] text-muted-foreground">
+                        Förnyas {credits?.renewal_date ? new Date(credits.renewal_date).toLocaleDateString('sv-SE') : '—'}
+                      </span>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-5 text-[10px] px-2 rounded"
+                        onClick={() => navigate('/buy-credits')}
+                      >
+                        <Coins className="w-3 h-3 mr-1" />
+                        Köp
+                      </Button>
+                    </div>
+                  </div>
                   <DropdownMenuItem asChild>
                     <Link to="/account" className="cursor-pointer text-sm">
                       <Settings className="mr-2 h-3.5 w-3.5" />
