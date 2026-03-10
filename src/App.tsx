@@ -197,6 +197,14 @@ const App = () => (
                 </AdminRoute>
               } 
             />
+            <Route 
+              path="/admin/email-automation" 
+              element={
+                <AdminRoute>
+                  <AdminEmailAutomation />
+                </AdminRoute>
+              } 
+            />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/demo" element={<Demo />} />
             <Route path="/promo/:code" element={<RedeemPromotion />} />
