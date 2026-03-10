@@ -17,7 +17,7 @@ export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
       }
       
       if (!user) {
-        console.log('AdminRoute: No user found');
+        
         setIsAdmin(false);
         setChecking(false);
         return;
