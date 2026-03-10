@@ -146,6 +146,7 @@ const DashboardLayout = ({ children, showBackButton, pageTitle, hideFooter }: Da
           animate="enter"
           exit="exit"
         >
+          <CreditWarningBanner />
           {children}
         </motion.main>
       </AnimatePresence>
