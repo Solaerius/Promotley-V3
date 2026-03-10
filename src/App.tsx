@@ -44,6 +44,7 @@ import ContentIdeas from "./pages/ai/ContentIdeas";
 import WeeklyPlanner from "./pages/ai/WeeklyPlanner";
 import CampaignStrategy from "./pages/ai/CampaignStrategy";
 import UFTips from "./pages/ai/UFTips";
+import GlobalTutorial from "./components/GlobalTutorial";
 
 const DevAutoLogin = import.meta.env.DEV
   ? lazy(() => import("./pages/DevAutoLogin"))
