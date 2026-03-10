@@ -4,6 +4,7 @@ import { MessageSquare, Wand2, BarChart3, Radar } from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { motion } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
+import SpotlightHighlight from "@/components/SpotlightHighlight";
 
 // Import content components
 import AIChatContent from "@/components/ai/AIChatContent";
@@ -17,18 +18,27 @@ const AIPage = () => {
     return searchParams.get('tab') || localStorage.getItem('promotely_ai_tab') || 'verktyg';
   });
   const [prefillAction, setPrefillAction] = useState<string | null>(null);
+  const [showSpotlight, setShowSpotlight] = useState<string | null>(null);
 
-  // Read URL params on mount and when they change
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     const actionParam = searchParams.get('action');
+    const spotlightParam = searchParams.get('spotlight');
     if (tabParam) {
       setActiveTab(tabParam);
       localStorage.setItem('promotely_ai_tab', tabParam);
     }
+    if (spotlightParam) {
+      // Navigate to analysis tab if spotlight is for AI analysis
+      if (spotlightParam === 'spotlight_ai_analysis') {
+        setActiveTab('analys');
+        localStorage.setItem('promotely_ai_tab', 'analys');
+      }
+      setShowSpotlight(spotlightParam);
+      setSearchParams({}, { replace: true });
+    }
     if (actionParam) {
       setPrefillAction(actionParam);
-      // Clear URL params after reading
       setSearchParams({}, { replace: true });
     }
   }, [searchParams, setSearchParams]);
@@ -112,6 +122,15 @@ const AIPage = () => {
             </motion.div>
           </Tabs>
         </div>
+
+        {/* Spotlight overlay for notifications */}
+        {showSpotlight === 'spotlight_ai_analysis' && (
+          <SpotlightHighlight
+            selector='[data-spotlight="ai-analysis-btn"]'
+            duration={3000}
+            onDismiss={() => setShowSpotlight(null)}
+          />
+        )}
       </div>
     </DashboardLayout>
   );

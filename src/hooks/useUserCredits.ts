@@ -53,6 +53,7 @@ export const useUserCredits = () => {
 
   const getPlanLabel = (plan: string) => {
     switch (plan) {
+      case 'free_trial': return 'Gratis';
       case 'starter': return 'Starter';
       case 'growth': return 'Growth';
       case 'pro': return 'Pro';

@@ -233,7 +233,15 @@ export function DashboardNavbar({ showBackButton, title }: DashboardNavbarProps)
                       <DropdownMenuItem
                         key={notification.id}
                         className="flex flex-col items-start p-3 cursor-pointer"
-                        onClick={() => !notification.read && markAsRead(notification.id)}
+                        onClick={() => {
+                          if (!notification.read) markAsRead(notification.id);
+                          if ((notification as any).action_url) {
+                            const url = (notification as any).action_type
+                              ? `${(notification as any).action_url}?spotlight=${(notification as any).action_type}`
+                              : (notification as any).action_url;
+                            navigate(url);
+                          }
+                        }}
                       >
                         <div className="flex items-start justify-between w-full">
                           <div className="flex-1">
@@ -281,15 +289,12 @@ export function DashboardNavbar({ showBackButton, title }: DashboardNavbarProps)
                     value={credits?.max_credits ? (credits.credits_left / credits.max_credits) * 100 : 0} 
                     className="h-2" 
                   />
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-[10px] text-muted-foreground">
-                      Förnyas {credits?.renewal_date ? new Date(credits.renewal_date).toLocaleDateString('sv-SE') : '—'}
-                    </span>
+                  <div className="flex justify-end mt-2">
                     <Button 
                       variant="outline" 
                       size="sm" 
                       className="h-5 text-[10px] px-2 rounded"
-                      onClick={() => navigate('/buy-credits')}
+                      onClick={() => navigate('/pricing')}
                     >
                       <Coins className="w-3 h-3 mr-1" />
                       Köp
@@ -445,7 +450,15 @@ export function DashboardNavbar({ showBackButton, title }: DashboardNavbarProps)
                         <DropdownMenuItem
                           key={notification.id}
                           className="flex flex-col items-start p-3 cursor-pointer"
-                          onClick={() => !notification.read && markAsRead(notification.id)}
+                          onClick={() => {
+                            if (!notification.read) markAsRead(notification.id);
+                            if ((notification as any).action_url) {
+                              const url = (notification as any).action_type
+                                ? `${(notification as any).action_url}?spotlight=${(notification as any).action_type}`
+                                : (notification as any).action_url;
+                              navigate(url);
+                            }
+                          }}
                         >
                           <div className="flex items-start justify-between w-full">
                             <div className="flex-1">
@@ -493,15 +506,12 @@ export function DashboardNavbar({ showBackButton, title }: DashboardNavbarProps)
                       value={credits?.max_credits ? (credits.credits_left / credits.max_credits) * 100 : 0} 
                       className="h-2" 
                     />
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-[10px] text-muted-foreground">
-                        Förnyas {credits?.renewal_date ? new Date(credits.renewal_date).toLocaleDateString('sv-SE') : '—'}
-                      </span>
+                    <div className="flex justify-end mt-2">
                       <Button 
                         variant="outline" 
                         size="sm" 
                         className="h-5 text-[10px] px-2 rounded"
-                        onClick={() => navigate('/buy-credits')}
+                        onClick={() => navigate('/pricing')}
                       >
                         <Coins className="w-3 h-3 mr-1" />
                         Köp

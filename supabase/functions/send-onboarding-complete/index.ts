@@ -28,7 +28,7 @@ function generateWelcomeEmailHtml(companyName: string): string {
         <table role="presentation" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           <tr>
             <td style="padding: 40px 40px 20px; text-align: center;">
-              <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #35141D;">🎉 Grattis!</h1>
+              <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #35141D;">Grattis!</h1>
               <p style="margin: 8px 0 0; font-size: 14px; color: #952A5E;">Din profil är nu komplett</p>
             </td>
           </tr>
@@ -112,9 +112,11 @@ serve(async (req) => {
     // Create in-app notification
     await adminClient.from("notifications").insert({
       user_id: user.id,
-      title: "Välkommen till Promotely! 🎉",
+      title: "Välkommen till Promotely!",
       message: `Din profil är klar. Prova din första AI-analys – den är gratis!`,
       read: false,
+      action_url: "/ai",
+      action_type: "spotlight_ai_analysis",
     });
 
     // Send email if Resend is configured
@@ -129,7 +131,7 @@ serve(async (req) => {
         body: JSON.stringify({
           from: MAIL_FROM,
           to: [user.email],
-          subject: "Du är igång – första AI-analysen är gratis! 🎉",
+          subject: "Du är igång – första AI-analysen är gratis!",
           html,
         }),
       });

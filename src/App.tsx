@@ -28,6 +28,7 @@ import AdminBanManagement from "./pages/AdminBanManagement";
 import AdminSwishOrders from "./pages/AdminSwishOrders";
 import AdminPromotions from "./pages/AdminPromotions";
 import AdminEmailBroadcast from "./pages/AdminEmailBroadcast";
+import AdminEmailAutomation from "./pages/AdminEmailAutomation";
 import OrganizationOnboarding from "./pages/OrganizationOnboarding";
 import OrganizationSettings from "./pages/OrganizationSettings";
 import CreateOrganization from "./pages/CreateOrganization";
@@ -44,6 +45,7 @@ import ContentIdeas from "./pages/ai/ContentIdeas";
 import WeeklyPlanner from "./pages/ai/WeeklyPlanner";
 import CampaignStrategy from "./pages/ai/CampaignStrategy";
 import UFTips from "./pages/ai/UFTips";
+import GlobalTutorial from "./components/GlobalTutorial";
 
 const DevAutoLogin = import.meta.env.DEV
   ? lazy(() => import("./pages/DevAutoLogin"))
@@ -58,6 +60,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <GlobalTutorial />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -191,6 +194,14 @@ const App = () => (
               element={
                 <AdminRoute>
                   <AdminEmailBroadcast />
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/email-automation" 
+              element={
+                <AdminRoute>
+                  <AdminEmailAutomation />
                 </AdminRoute>
               } 
             />
