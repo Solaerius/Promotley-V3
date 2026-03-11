@@ -113,6 +113,14 @@ const App = () => (
                 </RequireVerifiedEmail>
               } 
             />
+            <Route 
+              path="/ai/chat" 
+              element={
+                <RequireVerifiedEmail>
+                  <AIChat />
+                </RequireVerifiedEmail>
+              } 
+            />
             {/* AI Tool pages */}
             <Route path="/ai/caption" element={<RequireVerifiedEmail><CaptionGenerator /></RequireVerifiedEmail>} />
             <Route path="/ai/hashtags" element={<RequireVerifiedEmail><HashtagSuggestions /></RequireVerifiedEmail>} />
