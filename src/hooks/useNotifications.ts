@@ -89,6 +89,29 @@ export const useNotifications = () => {
     }
   }, []);
 
+  const clearAll = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from("notifications")
+        .delete()
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      setNotifications([]);
+    } catch (err) {
+      console.error("Error clearing notifications:", err);
+      toast({
+        title: "Fel",
+        description: "Kunde inte rensa notiser.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
   useEffect(() => {
     fetchNotifications();
 
