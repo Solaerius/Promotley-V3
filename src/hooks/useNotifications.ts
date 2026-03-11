@@ -148,5 +148,6 @@ export const useNotifications = () => {
     fetchNotifications,
     markAsRead,
     markAllAsRead,
+    clearAll,
   };
 };
