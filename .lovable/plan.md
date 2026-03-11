@@ -1,25 +1,54 @@
 
 
-# Fix: Clickable Notifications
+# Dev Auto-Login for Browser Testing
 
 ## Problem
+When Lovable's browser automation tests protected dashboard pages, it gets stuck at the login screen. The preview iframe session must be authenticated first.
 
-The notification items in `DashboardNavbar.tsx` use `DropdownMenuItem` with `onClick`, but Radix UI's `DropdownMenuItem` can swallow click events or close the dropdown before the handler completes. Additionally, notifications without `action_url` have no click feedback or action, and the `(notification as any)` type cast suggests the types aren't properly connected.
+## Solution
+Create a **development-only auto-login route** (`/dev/auto-login`) that:
+1. Only renders in non-production builds (checks `window.location.hostname` for preview/localhost)
+2. Automatically signs in using a dedicated test account via real authentication
+3. Redirects to `/dashboard` after successful login
+4. Is completely excluded from production builds
 
-## Fix
+This lets browser automation navigate to `/dev/auto-login` before testing any protected page.
 
-### 1. Replace `onClick` with `onSelect` on `DropdownMenuItem`
+## Implementation
 
-Radix `DropdownMenuItem` uses `onSelect` as its primary interaction handler, not `onClick`. Switch both notification dropdown instances (horizontal and vertical navbar) to use `onSelect` with `e.preventDefault()` to keep the dropdown open during navigation.
+### 1. Create `src/pages/DevAutoLogin.tsx`
+- Check if running on preview/localhost domain — if not, redirect to `/`
+- Call `supabase.auth.signInWithPassword()` with test credentials from environment or hardcoded dev account
+- Show a loading spinner during auth, then redirect to `/dashboard`
+- Display clear "DEV ONLY" warning banner
 
-### 2. Remove `(notification as any)` casts
+### 2. Create test account edge function `supabase/functions/dev-setup/index.ts`
+- Creates a test user account if it doesn't exist (e.g. `test@promotely.dev`)
+- Only works when called from preview/localhost origins
+- Returns the test credentials
 
-The `Notification` interface in `useNotifications.ts` already includes `action_url` and `action_type`. Remove the unnecessary `as any` casts in `DashboardNavbar.tsx`.
+### 3. Add route to `src/App.tsx`
+- Add `/dev/auto-login` route with the DevAutoLogin component
+- No `ProtectedRoute` wrapper (it IS the login mechanism)
+- Only rendered in development mode via `import.meta.env.DEV` check
 
-### 3. Add visual click affordance
+### 4. Usage in browser testing
+```text
+1. navigate_to_sandbox → /dev/auto-login
+2. Wait for auto-redirect to /dashboard
+3. Proceed with testing any protected page
+```
 
-- Add a hover highlight and subtle arrow icon for notifications that have an `action_url`
-- All notifications should mark as read on click regardless of `action_url`
+## Security
+- Route only exists when `import.meta.env.DEV` is true (Vite strips it from production builds)
+- Additional hostname check as fallback
+- Test account has minimal permissions (no admin)
+- No hardcoded production credentials
 
-**Files to edit**: `src/components/DashboardNavbar.tsx` (two notification list sections around lines 232-258 and 449-475)
+## Files Changed
+| File | Change |
+|------|--------|
+| `src/pages/DevAutoLogin.tsx` | New — auto-login component |
+| `src/App.tsx` | Add dev route |
+| `supabase/functions/dev-setup/index.ts` | New — test account provisioning |
 
