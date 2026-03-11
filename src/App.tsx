@@ -17,6 +17,7 @@ import Dashboard from "./pages/Dashboard";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import Calendar from "./pages/Calendar";
 import AIPage from "./pages/AIPage";
+import AIChat from "./pages/AIChat";
 import AccountPage from "./pages/AccountPage";
 import Pricing from "./pages/Pricing";
 import SwishCheckout from "./pages/SwishCheckout";
