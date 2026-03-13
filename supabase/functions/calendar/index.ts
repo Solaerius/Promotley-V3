@@ -1,9 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-
-const URL = Deno.env.get('SUPABASE_URL')!;
-const ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
-const SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,30 +9,28 @@ const corsHeaders = {
 const VALID_EVENT_TYPES = ['inlagg', 'uf_marknad', 'event', 'deadline', 'ovrigt'];
 const VALID_PLATFORMS = ['instagram', 'tiktok', 'facebook'];
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
-    // Extract and validate JWT
-    const authHeader = req.headers.get('Authorization') ?? '';
-    const jwt = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    if (!jwt) {
+    // Extract and validate JWT
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized: missing_jwt' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // 1) Validate JWT using anon key + user JWT (standard Supabase edge function pattern)
-    const userClient = createClient(URL, ANON, {
-      global: { headers: { Authorization: `Bearer ${jwt}` } },
-      auth: { persistSession: false }
-    });
-    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       console.error('JWT validation failed:', userError);
@@ -47,8 +40,8 @@ serve(async (req) => {
       );
     }
 
-    // Rate limiting (use service role client for admin operations)
-    const adminClient = createClient(URL, SERVICE, { auth: { persistSession: false } });
+    // Rate limiting
+    const adminClient = supabase;
     const { data: rateLimitOk } = await adminClient.rpc('check_rate_limit', {
       _user_id: user.id,
       _endpoint: 'calendar'
@@ -60,11 +53,8 @@ serve(async (req) => {
       );
     }
 
-    // 2) DB client with anon key + forwarded JWT for RLS
-    const db = createClient(URL, ANON, {
-      global: { headers: { Authorization: `Bearer ${jwt}` } },
-      auth: { persistSession: false }
-    });
+    // DB client (service role — all queries filter by user_id)
+    const db = supabase;
 
     // Helper functions
     const ok = (data: any, status = 200) => new Response(

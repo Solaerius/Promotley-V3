@@ -12,7 +12,7 @@ project_id = "fmvbzhlqzzwzciqgbzgp"
   [functions.billing]
     verify_jwt = false
   [functions.calendar]
-    verify_jwt = true
+    verify_jwt = false
   [functions.cleanup-oauth-states]
     verify_jwt = false
   [functions.disconnect-meta]
