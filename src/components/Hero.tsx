@@ -38,12 +38,11 @@ const Hero = () => {
       <div className="blur-orb blur-orb-secondary w-[600px] h-[600px] bottom-0 -left-32 animate-glow-pulse" style={{ animationDelay: '1.5s' }} />
       <div className="blur-orb blur-orb-primary w-[400px] h-[400px] top-1/2 left-1/4 animate-glow-pulse" style={{ animationDelay: '0.75s' }} />
       
-      {/* Extra large blur for bottom transition */}
-      <div 
+      {/* Bottom fade for seamless section transition */}
+      <div
         className="absolute bottom-0 left-0 right-0 h-64 pointer-events-none z-10"
         style={{
-          background: 'linear-gradient(to top, hsl(344 55% 12% / 0.8) 0%, transparent 100%)',
-          filter: 'blur(40px)',
+          background: 'linear-gradient(to top, hsl(var(--background)) 0%, transparent 100%)',
         }}
       />
 

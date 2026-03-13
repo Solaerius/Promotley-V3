@@ -172,4 +172,27 @@
   .divider { @apply h-px w-full bg-gradient-to-r from-transparent via-border to-transparent; }
   .input-field { @apply w-full px-4 py-3 rounded-xl bg-background border-2 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30; border-color: var(--outline-subtle); box-shadow: var(--shadow-input); }
   .input-field:focus { border-color: var(--outline-subtle-focus); box-shadow: var(--shadow-input-focus); }
+
+  /* Ambient glow orbs used in Hero section */
+  .blur-orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(100px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blur-orb-primary {
+    background: hsl(331 65% 35% / 0.28);
+  }
+  .blur-orb-secondary {
+    background: hsl(9 90% 55% / 0.18);
+  }
+
+  /* Gradient text used throughout landing page */
+  .text-gradient {
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 }

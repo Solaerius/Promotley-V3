@@ -12,7 +12,6 @@ import { authSchema } from "@/lib/validations";
 import logo from "@/assets/logo.png";
 import { Eye, EyeOff, ArrowLeft, Ban } from "lucide-react";
 import AppleIcon from "@/components/icons/AppleIcon";
-import { lovable } from "@/integrations/lovable/index";
 import PasswordRequirements from "@/components/PasswordRequirements";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
@@ -244,8 +243,9 @@ const Auth = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin },
       });
 
       if (error) {
@@ -266,8 +266,9 @@ const Auth = () => {
 
   const handleAppleLogin = async () => {
     try {
-      const { error } = await lovable.auth.signInWithOAuth("apple", {
-        redirect_uri: window.location.origin,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "apple",
+        options: { redirectTo: window.location.origin },
       });
 
       if (error) {

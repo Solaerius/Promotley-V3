@@ -8,51 +8,62 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RequireVerifiedEmail } from "@/components/RequireVerifiedEmail";
 import { AdminRoute } from "@/components/AdminRoute";
+// Critical path — eager
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import VerifyEmail from "./pages/VerifyEmail";
 import AuthCallback from "./pages/AuthCallback";
-import Onboarding from "./pages/Onboarding";
-import Dashboard from "./pages/Dashboard";
-import AnalyticsPage from "./pages/AnalyticsPage";
-import Calendar from "./pages/Calendar";
-import AIPage from "./pages/AIPage";
-import AIChat from "./pages/AIChat";
-import AccountPage from "./pages/AccountPage";
-import Pricing from "./pages/Pricing";
-import SwishCheckout from "./pages/SwishCheckout";
-import AdminChat from "./pages/AdminChat";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminNotificationSettings from "./pages/AdminNotificationSettings";
-import AdminUserManagement from "./pages/AdminUserManagement";
-import AdminBanManagement from "./pages/AdminBanManagement";
-import AdminSwishOrders from "./pages/AdminSwishOrders";
-import AdminPromotions from "./pages/AdminPromotions";
-import AdminEmailBroadcast from "./pages/AdminEmailBroadcast";
-import AdminEmailAutomation from "./pages/AdminEmailAutomation";
-import OrganizationOnboarding from "./pages/OrganizationOnboarding";
-import OrganizationSettings from "./pages/OrganizationSettings";
-import CreateOrganization from "./pages/CreateOrganization";
-import JoinOrganization from "./pages/JoinOrganization";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
-import Demo from "./pages/Demo";
-import RedeemPromotion from "./pages/RedeemPromotion";
-import Unsubscribe from "./pages/Unsubscribe";
-import CaptionGenerator from "./pages/ai/CaptionGenerator";
-import HashtagSuggestions from "./pages/ai/HashtagSuggestions";
-import ContentIdeas from "./pages/ai/ContentIdeas";
-import WeeklyPlanner from "./pages/ai/WeeklyPlanner";
-import CampaignStrategy from "./pages/ai/CampaignStrategy";
-import UFTips from "./pages/ai/UFTips";
 import GlobalTutorial from "./components/GlobalTutorial";
+// Lazy-loaded pages
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
+const Calendar = lazy(() => import("./pages/Calendar"));
+const AIPage = lazy(() => import("./pages/AIPage"));
+const AIChat = lazy(() => import("./pages/AIChat"));
+const AccountPage = lazy(() => import("./pages/AccountPage"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const SwishCheckout = lazy(() => import("./pages/SwishCheckout"));
+const Demo = lazy(() => import("./pages/Demo"));
+const RedeemPromotion = lazy(() => import("./pages/RedeemPromotion"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+// AI tools
+const CaptionGenerator = lazy(() => import("./pages/ai/CaptionGenerator"));
+const HashtagSuggestions = lazy(() => import("./pages/ai/HashtagSuggestions"));
+const ContentIdeas = lazy(() => import("./pages/ai/ContentIdeas"));
+const WeeklyPlanner = lazy(() => import("./pages/ai/WeeklyPlanner"));
+const CampaignStrategy = lazy(() => import("./pages/ai/CampaignStrategy"));
+const UFTips = lazy(() => import("./pages/ai/UFTips"));
+// Admin pages
+const AdminChat = lazy(() => import("./pages/AdminChat"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminNotificationSettings = lazy(() => import("./pages/AdminNotificationSettings"));
+const AdminUserManagement = lazy(() => import("./pages/AdminUserManagement"));
+const AdminBanManagement = lazy(() => import("./pages/AdminBanManagement"));
+const AdminSwishOrders = lazy(() => import("./pages/AdminSwishOrders"));
+const AdminPromotions = lazy(() => import("./pages/AdminPromotions"));
+const AdminEmailBroadcast = lazy(() => import("./pages/AdminEmailBroadcast"));
+const AdminEmailAutomation = lazy(() => import("./pages/AdminEmailAutomation"));
+// Organization pages
+const OrganizationOnboarding = lazy(() => import("./pages/OrganizationOnboarding"));
+const OrganizationSettings = lazy(() => import("./pages/OrganizationSettings"));
+const CreateOrganization = lazy(() => import("./pages/CreateOrganization"));
+const JoinOrganization = lazy(() => import("./pages/JoinOrganization"));
 
 const DevAutoLogin = import.meta.env.DEV
   ? lazy(() => import("./pages/DevAutoLogin"))
   : null;
 
 const queryClient = new QueryClient();
+
+const PageLoader = (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -62,6 +73,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <GlobalTutorial />
+          <Suspense fallback={PageLoader}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -260,15 +272,12 @@ const App = () => (
             <Route path="/join/:code" element={<JoinOrganization />} />
             {/* Dev auto-login route (only in development) */}
             {import.meta.env.DEV && DevAutoLogin && (
-              <Route path="/dev/auto-login" element={
-                <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" /></div>}>
-                  <DevAutoLogin />
-                </Suspense>
-              } />
+              <Route path="/dev/auto-login" element={<DevAutoLogin />} />
             )}
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
