@@ -14,7 +14,7 @@ import BackToTop from "@/components/BackToTop";
 import AnimatedSection from "@/components/AnimatedSection";
 import { Link } from "react-router-dom";
 const Index = () => {
-  return <div className="min-h-screen relative" style={{ background: 'hsl(222 47% 4%)' }}>
+  return <div className="min-h-screen relative" style={{ background: 'hsl(240 50% 4%)' }}>
       {/* Single continuous grid texture for the whole page */}
       <div
         className="fixed inset-0 pointer-events-none"
@@ -59,7 +59,7 @@ const Index = () => {
       <CookieConsent />
       
       {/* Footer */}
-      <footer className="border-t py-10 md:py-12 px-4" style={{ borderColor: 'hsl(0 0% 100% / 0.08)', background: 'hsl(222 47% 3%)' }}>
+      <footer className="border-t py-10 md:py-12 px-4" style={{ borderColor: 'hsl(0 0% 100% / 0.08)', background: 'hsl(240 50% 3%)' }}>
         <div className="container mx-auto font-poppins" style={{ color: 'hsl(0 0% 100% / 0.4)' }}>
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto mb-6 md:mb-8">
             {/* Company Info */}

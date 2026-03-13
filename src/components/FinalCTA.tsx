@@ -15,7 +15,7 @@ const FinalCTA = () => {
       <div
         className="absolute inset-0"
         style={{
-          background: 'radial-gradient(ellipse 70% 80% at 50% 50%, hsl(344 70% 22%) 0%, hsl(222 47% 4%) 70%)',
+          background: 'radial-gradient(ellipse 70% 80% at 50% 50%, hsl(260 70% 18%) 0%, hsl(240 50% 4%) 70%)',
         }}
       />
 
@@ -30,14 +30,14 @@ const FinalCTA = () => {
         >
           <div
             className="rounded-3xl px-8 py-14 md:py-20 text-center"
-            style={{ background: 'hsl(344 60% 8% / 0.8)' }}
+            style={{ background: 'hsl(240 50% 7% / 0.85)' }}
           >
             {/* Badge */}
             <div
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8"
               style={{
-                background: 'hsl(344 70% 30% / 0.3)',
-                border: '1px solid hsl(344 60% 50% / 0.3)',
+                background: 'hsl(260 70% 30% / 0.25)',
+                border: '1px solid hsl(260 60% 50% / 0.25)',
               }}
             >
               <Sparkles className="w-4 h-4 text-white" />

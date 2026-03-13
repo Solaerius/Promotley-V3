@@ -56,7 +56,7 @@ const Pricing = () => {
   return (
     <section id="pricing" className="relative py-24 md:py-32 px-4 overflow-hidden font-poppins">
       {/* Section accent glow */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 70% 55% at 50% 40%, hsl(344 60% 14% / 0.65) 0%, transparent 70%)' }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 70% 55% at 50% 40%, hsl(260 60% 14% / 0.5) 0%, transparent 70%)' }} />
 
       <div className="container mx-auto relative z-10">
         {/* Section header */}
@@ -64,8 +64,8 @@ const Pricing = () => {
           <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
             style={{
-              background: 'hsl(344 70% 30% / 0.3)',
-              border: '1px solid hsl(344 60% 50% / 0.3)',
+              background: 'hsl(260 70% 30% / 0.25)',
+              border: '1px solid hsl(260 60% 50% / 0.25)',
             }}
           >
             <Sparkles className="w-4 h-4 text-white" />
@@ -109,7 +109,7 @@ const Pricing = () => {
                   {/* Inner dark card */}
                   <div
                     className="rounded-2xl p-6 md:p-8 h-full"
-                    style={{ background: 'hsl(344 50% 6%)' }}
+                    style={{ background: 'hsl(240 50% 6%)' }}
                   >
                     <div className="space-y-6">
                       <div>

@@ -32,11 +32,11 @@ const Hero = () => {
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-start overflow-hidden pt-28 pb-0">
-      {/* Deep dark red background */}
+      {/* Deep dark purple background */}
       <div
         className="absolute inset-0"
         style={{
-          background: 'radial-gradient(ellipse 80% 60% at 50% -10%, hsl(344 70% 22%) 0%, hsl(344 60% 8%) 55%, hsl(222 47% 4%) 100%)',
+          background: 'radial-gradient(ellipse 80% 60% at 50% -10%, hsl(260 70% 20%) 0%, hsl(260 50% 8%) 55%, hsl(240 50% 4%) 100%)',
         }}
       />
 
@@ -50,7 +50,7 @@ const Hero = () => {
           transform: 'translateX(-50%)',
           width: '900px',
           height: '500px',
-          background: 'radial-gradient(ellipse, hsl(9 85% 45% / 0.25) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse, hsl(260 70% 45% / 0.2) 0%, transparent 70%)',
           filter: 'blur(60px)',
         }}
       />
@@ -61,7 +61,7 @@ const Hero = () => {
           left: '-10%',
           width: '500px',
           height: '500px',
-          background: 'radial-gradient(ellipse, hsl(331 65% 35% / 0.15) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse, hsl(260 65% 40% / 0.12) 0%, transparent 70%)',
           filter: 'blur(80px)',
           animationDelay: '1s',
         }}
@@ -73,7 +73,7 @@ const Hero = () => {
           right: '-10%',
           width: '500px',
           height: '500px',
-          background: 'radial-gradient(ellipse, hsl(9 85% 45% / 0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse, hsl(260 70% 45% / 0.1) 0%, transparent 70%)',
           filter: 'blur(80px)',
           animationDelay: '2s',
         }}
@@ -87,8 +87,8 @@ const Hero = () => {
             showElements.badge ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
           style={{
-            background: 'hsl(344 70% 30% / 0.3)',
-            border: '1px solid hsl(344 60% 50% / 0.3)',
+            background: 'hsl(260 70% 30% / 0.3)',
+            border: '1px solid hsl(260 60% 50% / 0.3)',
             backdropFilter: 'blur(8px)',
           }}
         >
@@ -203,7 +203,7 @@ const Hero = () => {
           <div
             className="absolute inset-x-8 -top-8 bottom-0 pointer-events-none"
             style={{
-              background: 'radial-gradient(ellipse 80% 50% at 50% 20%, hsl(9 85% 45% / 0.35) 0%, transparent 70%)',
+              background: 'radial-gradient(ellipse 80% 50% at 50% 20%, hsl(260 70% 45% / 0.25) 0%, transparent 70%)',
               filter: 'blur(40px)',
             }}
           />
@@ -217,8 +217,8 @@ const Hero = () => {
             <div
               className="rounded-2xl p-3.5 text-left"
               style={{
-                background: 'hsl(344 50% 10% / 0.9)',
-                border: '1px solid hsl(344 60% 30% / 0.4)',
+                background: 'hsl(240 50% 10% / 0.9)',
+                border: '1px solid hsl(260 60% 30% / 0.35)',
                 backdropFilter: 'blur(16px)',
                 boxShadow: '0 8px 32px hsl(0 0% 0% / 0.4)',
               }}
@@ -241,8 +241,8 @@ const Hero = () => {
             <div
               className="rounded-2xl p-3.5 text-left"
               style={{
-                background: 'hsl(344 50% 10% / 0.9)',
-                border: '1px solid hsl(344 60% 30% / 0.4)',
+                background: 'hsl(240 50% 10% / 0.9)',
+                border: '1px solid hsl(260 60% 30% / 0.35)',
                 backdropFilter: 'blur(16px)',
                 boxShadow: '0 8px 32px hsl(0 0% 0% / 0.4)',
               }}
@@ -260,7 +260,7 @@ const Hero = () => {
             <div
               className="relative rounded-2xl overflow-hidden"
               style={{
-                background: 'linear-gradient(180deg, hsl(222 47% 10%) 0%, hsl(222 47% 7%) 100%)',
+                background: 'linear-gradient(180deg, hsl(240 50% 10%) 0%, hsl(240 50% 7%) 100%)',
                 border: '1px solid hsl(0 0% 100% / 0.08)',
                 boxShadow: '0 30px 80px hsl(0 0% 0% / 0.6), 0 0 0 1px hsl(0 0% 100% / 0.04), inset 0 1px 0 hsl(0 0% 100% / 0.08)',
               }}
@@ -269,7 +269,7 @@ const Hero = () => {
               <div
                 className="flex items-center gap-2 px-4 py-3"
                 style={{
-                  background: 'hsl(222 47% 8%)',
+                  background: 'hsl(240 50% 8%)',
                   borderBottom: '1px solid hsl(0 0% 100% / 0.06)',
                 }}
               >
@@ -315,7 +315,7 @@ const Hero = () => {
                       key={item}
                       className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs"
                       style={{
-                        background: i === 0 ? 'hsl(344 60% 30% / 0.3)' : 'transparent',
+                        background: i === 0 ? 'hsl(260 60% 30% / 0.25)' : 'transparent',
                         color: i === 0 ? 'hsl(9 85% 70%)' : 'hsl(0 0% 100% / 0.4)',
                       }}
                     >
@@ -418,8 +418,8 @@ const Hero = () => {
                   <div
                     className="rounded-xl p-3.5 flex items-start gap-3"
                     style={{
-                      background: 'hsl(344 60% 25% / 0.2)',
-                      border: '1px solid hsl(344 60% 40% / 0.2)',
+                      background: 'hsl(260 60% 25% / 0.2)',
+                      border: '1px solid hsl(260 60% 40% / 0.2)',
                     }}
                   >
                     <div
@@ -442,13 +442,13 @@ const Hero = () => {
               <div
                 className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none"
                 style={{
-                  background: 'linear-gradient(to top, hsl(222 47% 7%) 0%, transparent 100%)',
+                  background: 'linear-gradient(to top, hsl(240 50% 7%) 0%, transparent 100%)',
                 }}
               />
 
               {/* Hover overlay */}
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
-                style={{ background: 'hsl(344 60% 20% / 0.15)' }}>
+                style={{ background: 'hsl(260 60% 20% / 0.15)' }}>
                 <div
                   className="flex items-center gap-2 px-5 py-3 rounded-2xl text-white font-medium text-sm"
                   style={{
@@ -519,7 +519,7 @@ const Hero = () => {
       <div
         className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none z-10"
         style={{
-          background: 'linear-gradient(to top, hsl(222 47% 4%) 0%, transparent 100%)',
+          background: 'linear-gradient(to top, hsl(240 50% 4%) 0%, transparent 100%)',
         }}
       />
     </section>

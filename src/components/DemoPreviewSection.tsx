@@ -7,7 +7,7 @@ const DemoPreviewSection = () => {
   return (
     <section id="demo-preview" className="relative py-24 md:py-32 overflow-hidden">
       {/* Section accent glow */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 60%, hsl(9 80% 14% / 0.6) 0%, transparent 70%)' }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 60%, hsl(260 70% 14% / 0.5) 0%, transparent 70%)' }} />
 
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         {/* Section header */}
@@ -15,8 +15,8 @@ const DemoPreviewSection = () => {
           <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
             style={{
-              background: 'hsl(344 70% 30% / 0.3)',
-              border: '1px solid hsl(344 60% 50% / 0.3)',
+              background: 'hsl(260 70% 30% / 0.25)',
+              border: '1px solid hsl(260 60% 50% / 0.25)',
             }}
           >
             <Play className="w-4 h-4 text-white" />

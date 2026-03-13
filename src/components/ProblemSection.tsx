@@ -4,7 +4,7 @@ const ProblemSection = () => {
   return (
     <section className="relative py-24 md:py-32 px-4 overflow-hidden font-poppins">
       {/* Section accent glow */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 70% 55% at 30% 50%, hsl(344 60% 14% / 0.7) 0%, transparent 70%)' }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 70% 55% at 30% 50%, hsl(260 60% 14% / 0.55) 0%, transparent 70%)' }} />
 
       <div className="container mx-auto max-w-6xl relative z-10">
         {/* Section header */}
@@ -13,8 +13,8 @@ const ProblemSection = () => {
           <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4"
             style={{
-              background: 'hsl(344 70% 30% / 0.3)',
-              border: '1px solid hsl(344 60% 50% / 0.3)',
+              background: 'hsl(260 70% 30% / 0.25)',
+              border: '1px solid hsl(260 60% 50% / 0.25)',
             }}
           >
             <AlertCircle className="w-4 h-4 text-white" />
@@ -72,8 +72,8 @@ const ProblemSection = () => {
           <div
             className="relative p-8 md:p-10 rounded-2xl transition-all duration-300"
             style={{
-              background: 'hsl(344 60% 25% / 0.15)',
-              border: '1px solid hsl(9 85% 55% / 0.3)',
+              background: 'hsl(260 60% 20% / 0.15)',
+              border: '1px solid hsl(260 60% 55% / 0.25)',
             }}
           >
             {/* Recommended badge */}
