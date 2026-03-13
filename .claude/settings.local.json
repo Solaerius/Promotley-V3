@@ -22,7 +22,9 @@
       "Bash(cd \"C:\\\\Users\\\\eddie\\\\Claude Projects\\\\Promotley-V2\" && npm run lint 2>&1 | grep -E \"\\(AppSidebar|DashboardLayout\\)\" | head -20)",
       "Bash(cd \"C:\\\\Users\\\\eddie\\\\Claude Projects\\\\Promotley-V2\" && npm run lint 2>&1 | grep -E \"pages/\\(Analytics|AIPage\\)\" | head -20)",
       "Bash(cd \"C:\\\\Users\\\\eddie\\\\Claude Projects\\\\Promotley-V2\" && npm run lint 2>&1 | grep -E \"pages/\\(Calendar|AIChat|AccountPage\\)\" | head -20)",
-      "Bash(cd \"C:\\\\Users\\\\eddie\\\\Claude Projects\\\\Promotley-V2\" && npm run lint 2>&1 | grep -E \"pages/\\(Dashboard|Analytics|AIPage|Calendar|AIChat|AccountPage\\)|components/\\(AppSidebar|DashboardLayout\\)\" | head -20)"
+      "Bash(cd \"C:\\\\Users\\\\eddie\\\\Claude Projects\\\\Promotley-V2\" && npm run lint 2>&1 | grep -E \"pages/\\(Dashboard|Analytics|AIPage|Calendar|AIChat|AccountPage\\)|components/\\(AppSidebar|DashboardLayout\\)\" | head -20)",
+      "Bash(cd \"C:\\\\Users\\\\eddie\\\\Claude Projects\\\\Promotley-V2\" && npm run lint 2>&1 | grep \"useTikTokData\" | head -10)",
+      "Bash(cd \"C:\\\\Users\\\\eddie\\\\Claude Projects\\\\Promotley-V2\" && npm run lint 2>&1 | grep -A 3 \"useTikTokData\" | head -20)"
     ]
   }
 }
