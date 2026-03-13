@@ -21,7 +21,8 @@
       "Bash(cd \"C:\\\\Users\\\\eddie\\\\.claude\\\\plugins\\\\cache\\\\ui-ux-pro-max-skill\\\\ui-ux-pro-max\\\\2.0.1\" && python3 cli/assets/scripts/search.py \"editorial bold magazine dark analytics\" --domain style -n 5 2>&1 && python3 cli/assets/scripts/search.py \"SaaS analytics tool dashboard\" --domain product -n 3 2>&1)",
       "Bash(cd \"C:\\\\Users\\\\eddie\\\\Claude Projects\\\\Promotley-V2\" && npm run lint 2>&1 | grep -E \"\\(AppSidebar|DashboardLayout\\)\" | head -20)",
       "Bash(cd \"C:\\\\Users\\\\eddie\\\\Claude Projects\\\\Promotley-V2\" && npm run lint 2>&1 | grep -E \"pages/\\(Analytics|AIPage\\)\" | head -20)",
-      "Bash(cd \"C:\\\\Users\\\\eddie\\\\Claude Projects\\\\Promotley-V2\" && npm run lint 2>&1 | grep -E \"pages/\\(Calendar|AIChat|AccountPage\\)\" | head -20)"
+      "Bash(cd \"C:\\\\Users\\\\eddie\\\\Claude Projects\\\\Promotley-V2\" && npm run lint 2>&1 | grep -E \"pages/\\(Calendar|AIChat|AccountPage\\)\" | head -20)",
+      "Bash(cd \"C:\\\\Users\\\\eddie\\\\Claude Projects\\\\Promotley-V2\" && npm run lint 2>&1 | grep -E \"pages/\\(Dashboard|Analytics|AIPage|Calendar|AIChat|AccountPage\\)|components/\\(AppSidebar|DashboardLayout\\)\" | head -20)"
     ]
   }
 }
