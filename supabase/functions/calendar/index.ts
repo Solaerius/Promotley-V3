@@ -32,9 +32,12 @@ serve(async (req) => {
       );
     }
 
-    // 1) Validate JWT with service role client
-    const adminClient = createClient(URL, SERVICE, { auth: { persistSession: false } });
-    const { data: { user }, error: userError } = await adminClient.auth.getUser(jwt);
+    // 1) Validate JWT using anon key + user JWT (standard Supabase edge function pattern)
+    const userClient = createClient(URL, ANON, {
+      global: { headers: { Authorization: `Bearer ${jwt}` } },
+      auth: { persistSession: false }
+    });
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
 
     if (userError || !user) {
       console.error('JWT validation failed:', userError);
@@ -44,7 +47,8 @@ serve(async (req) => {
       );
     }
 
-    // Rate limiting
+    // Rate limiting (use service role client for admin operations)
+    const adminClient = createClient(URL, SERVICE, { auth: { persistSession: false } });
     const { data: rateLimitOk } = await adminClient.rpc('check_rate_limit', {
       _user_id: user.id,
       _endpoint: 'calendar'
