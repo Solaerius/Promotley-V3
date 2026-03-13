@@ -6,26 +6,33 @@ import { motion } from "framer-motion";
 const DemoPreviewSection = () => {
   return (
     <section id="demo-preview" className="relative py-24 md:py-32 overflow-hidden">
-      {/* Gradient background */}
-      <div className="absolute inset-0 bg-gradient-diagonal" />
-
-      {/* Blur orbs */}
-      <div className="blur-orb blur-orb-primary w-[600px] h-[600px] -top-32 -right-32 animate-glow-pulse" />
-      <div className="blur-orb blur-orb-secondary w-[500px] h-[500px] bottom-0 -left-24 animate-glow-pulse" style={{ animationDelay: '1s' }} />
-
-      {/* Top blend */}
+      {/* Dark crimson background */}
       <div
-        className="absolute top-0 left-0 right-0 h-48 pointer-events-none"
+        className="absolute inset-0"
         style={{
-          background: 'linear-gradient(to bottom, hsl(var(--background)) 0%, transparent 100%)',
-          filter: 'blur(40px)',
+          background: 'radial-gradient(ellipse 80% 60% at 50% -10%, hsl(344 60% 18%) 0%, hsl(344 50% 6%) 50%, hsl(222 47% 4%) 100%)',
+        }}
+      />
+
+      {/* Subtle grid texture */}
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: 'linear-gradient(hsl(0 0% 100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0 0% 100%) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
         }}
       />
 
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         {/* Section header */}
         <div className="max-w-3xl mx-auto text-center mb-12 md:mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm">
+          <div
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+            style={{
+              background: 'hsl(344 70% 30% / 0.3)',
+              border: '1px solid hsl(344 60% 50% / 0.3)',
+            }}
+          >
             <Play className="w-4 h-4 text-white" />
             <span className="text-sm font-medium text-white">Se det i aktion</span>
           </div>
@@ -33,7 +40,7 @@ const DemoPreviewSection = () => {
             Se hur Promotely{" "}
             <span className="text-gradient">funkar</span>
           </h2>
-          <p className="text-base md:text-lg text-white/70 max-w-2xl mx-auto">
+          <p className="text-base md:text-lg max-w-2xl mx-auto" style={{ color: 'hsl(0 0% 100% / 0.55)' }}>
             Testa vår interaktiva demo och se hur AI-driven marknadsföring kan hjälpa ditt UF-företag växa
           </p>
         </div>
@@ -209,15 +216,6 @@ const DemoPreviewSection = () => {
           </Link>
         </div>
       </div>
-
-      {/* Bottom blend */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none"
-        style={{
-          background: 'linear-gradient(to top, hsl(var(--background)) 0%, transparent 100%)',
-          filter: 'blur(40px)',
-        }}
-      />
     </section>
   );
 };
