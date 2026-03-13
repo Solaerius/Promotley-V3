@@ -5,7 +5,6 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { useNotifications } from "@/hooks/useNotifications";
 import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { AppSidebar } from "@/components/AppSidebar";
-import CreditWarningBanner from "@/components/CreditWarningBanner";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Bell, Trash2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -140,7 +139,6 @@ const DashboardLayout = ({ children, pageTitle, hideFooter }: DashboardLayoutPro
 
           {/* Main content - no motion wrapper */}
           <main className="flex-1 p-4 md:p-6">
-            <CreditWarningBanner />
             {children}
           </main>
 

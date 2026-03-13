@@ -28,6 +28,16 @@ const formatNumber = (num: number): string => {
   return num.toString();
 };
 
+const getISOWeek = (dateStr: string | null, fallback: number): string => {
+  if (!dateStr) return `V${fallback + 1}`;
+  const date = new Date(dateStr);
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return `V${Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)}`;
+};
+
 const STAT_COLORS = {
   primary: { bg: "bg-primary/15", text: "text-primary", border: "border-primary/50" },
   amber: { bg: "bg-amber-500/15", text: "text-amber-400", border: "border-amber-500/50" },
@@ -128,7 +138,7 @@ const Dashboard = () => {
     : overviewStatCards;
 
   const videoChartData = (tiktokData.videos || []).slice(0, 7).map((v, i) => ({
-    name: `V${i + 1}`,
+    name: getISOWeek(v.created_at, i),
     Visningar: v.views,
     Likes: v.likes,
     fullTitle: v.title,

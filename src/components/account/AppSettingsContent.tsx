@@ -50,12 +50,12 @@ const AppSettingsContent = () => {
         await supabase.from('connections').delete().eq('id', connection.id);
       }
       await loadConnections();
-      toast({ title: "Frankopplad" });
+      toast({ title: "Frånkopplad" });
     } catch { toast({ title: "Fel", variant: "destructive" }); }
   };
 
   const platformConnections = [
-    { name: "Instagram", provider: 'meta_ig' as const, icon: Instagram, connect: connectInstagram, note: "Kraver foretagskonto kopplat till Facebook-sida", comingSoon: true },
+    { name: "Instagram", provider: 'meta_ig' as const, icon: Instagram, connect: connectInstagram, note: "Kräver företagskonto kopplat till Facebook-sida", comingSoon: true },
     { name: "TikTok", provider: 'tiktok' as const, icon: Music2, connect: connectTikTok },
   ];
 
@@ -64,11 +64,11 @@ const AppSettingsContent = () => {
       {/* Theme */}
       <section className="space-y-3">
         <h2 className="text-base font-medium text-foreground">Utseende</h2>
-        <p className="text-sm text-muted-foreground">Valj mellan ljust, morkt eller systemets tema</p>
+        <p className="text-sm text-muted-foreground">Välj mellan ljust, mörkt eller systemets tema</p>
         <div className="grid grid-cols-3 gap-3">
           {[
             { value: "light", label: "Ljust", icon: Sun },
-            { value: "dark", label: "Morkt", icon: Moon },
+            { value: "dark", label: "Mörkt", icon: Moon },
             { value: "system", label: "System", icon: Monitor },
           ].map(({ value, label, icon: Icon }) => (
             <button

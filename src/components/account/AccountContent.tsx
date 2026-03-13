@@ -185,7 +185,7 @@ const AccountContent = () => {
           <div className="flex flex-wrap gap-2 pt-3 border-t border-border">
             <Button onClick={() => navigate('/pricing')} size="sm">
               <CreditCard className="w-4 h-4 mr-1.5" />
-              {hasActivePlan ? "Uppgradera plan" : "Valj plan"}
+              {hasActivePlan ? "Uppgradera plan" : "Välj plan"}
             </Button>
             {hasActivePlan && downgradeOptions.length > 0 && (
               <Button variant="outline" size="sm" onClick={() => setShowDowngradeDialog(true)}>
@@ -216,7 +216,7 @@ const AccountContent = () => {
           </div>
           <div className="flex flex-col items-center p-4 rounded-xl bg-card shadow-sm">
             <Building className="h-4 w-4 mb-2 text-muted-foreground" />
-            <p className="font-medium mb-2 text-sm">Foretagslogga</p>
+            <p className="font-medium mb-2 text-sm">Företagslogga</p>
             {user?.id && <ProfileImageUpload userId={user.id} currentUrl={companyLogoUrl} type="company_logo" onUploadComplete={(url) => setCompanyLogoUrl(url || null)} size="lg" />}
           </div>
         </div>
@@ -231,9 +231,9 @@ const AccountContent = () => {
             <p className="font-medium mt-1 text-sm">{user?.email}</p>
           </div>
           <div className="space-y-1">
-            <Label className="text-sm text-muted-foreground">Foretagsnamn</Label>
+            <Label className="text-sm text-muted-foreground">Företagsnamn</Label>
             <div className="flex gap-2">
-              <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Mitt UF-foretag" className="bg-background border-border" />
+              <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Mitt UF-företag" className="bg-background border-border" />
               <Button onClick={handleSaveCompanyName} disabled={isSavingCompanyName || companyName === originalCompanyName} size="icon" variant="secondary">
                 <Save className="w-4 h-4" />
               </Button>
@@ -246,7 +246,7 @@ const AccountContent = () => {
       <section className="space-y-3">
         <div>
           <h2 className="text-base font-medium text-foreground mb-0.5">AI-profil</h2>
-          <p className="text-sm text-muted-foreground">Fyll i alla obligatoriska falt for basta AI-svar</p>
+          <p className="text-sm text-muted-foreground">Fyll i alla obligatoriska fält för bästa AI-svar</p>
         </div>
         <AIProfileProgress />
         <div className="space-y-3 mt-2">
@@ -256,8 +256,8 @@ const AccountContent = () => {
               { key: "stad", label: "Stad", placeholder: "t.ex. Stockholm", required: true },
               { key: "postnummer", label: "Postnummer", placeholder: "t.ex. 114 52", required: true },
               { key: "land", label: "Land", placeholder: "Sverige" },
-              { key: "malgrupp", label: "Malgrupp", placeholder: "t.ex. 18-25 ar", required: true },
-              { key: "malsattning", label: "Malsattning", placeholder: "t.ex. Oka synlighet" },
+              { key: "malgrupp", label: "Målgrupp", placeholder: "t.ex. 18-25 år", required: true },
+              { key: "malsattning", label: "Målsättning", placeholder: "t.ex. Öka synlighet" },
               { key: "prisniva", label: "Prisniva", placeholder: "t.ex. Budget" },
               { key: "tonalitet", label: "Ton", placeholder: "t.ex. Lekfull, professionell" },
             ].map(({ key, label, placeholder, required }) => (
@@ -273,13 +273,13 @@ const AccountContent = () => {
             ))}
             <div className="space-y-1 col-span-2">
               <Label className="text-sm">Era grundprinciper</Label>
-              <Input value={aiFormData.nyckelord} onChange={(e) => setAiFormData(p => ({ ...p, nyckelord: e.target.value }))} placeholder="hallbarhet, handgjort (separera med komma)" className="bg-background border-border" />
+              <Input value={aiFormData.nyckelord} onChange={(e) => setAiFormData(p => ({ ...p, nyckelord: e.target.value }))} placeholder="hållbarhet, handgjort (separera med komma)" className="bg-background border-border" />
             </div>
           </div>
           {[
-            { key: "produkt_beskrivning", label: "Foretagsbeskrivning", placeholder: "Beskriv din produkt/tjanst...", required: true },
-            { key: "marknadsplan", label: "Marknadsplan", placeholder: "Nuvarande marknadsforingsstrategi..." },
-            { key: "allman_info", label: "Allman information", placeholder: "Beratta mer om ert foretag..." },
+            { key: "produkt_beskrivning", label: "Företagsbeskrivning", placeholder: "Beskriv din produkt/tjänst...", required: true },
+            { key: "marknadsplan", label: "Marknadsplan", placeholder: "Nuvarande marknadsföringsstrategi..." },
+            { key: "allman_info", label: "Allmän information", placeholder: "Berätta mer om ert företag..." },
           ].map(({ key, label, placeholder, required }) => (
             <div key={key} className="space-y-1">
               <Label className="text-sm">{label} {required && <span className="text-destructive">*</span>}</Label>
@@ -344,11 +344,11 @@ const AccountContent = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Nedgradera plan</AlertDialogTitle>
-            <AlertDialogDescription>Valj vilken plan du vill nedgradera till.</AlertDialogDescription>
+            <AlertDialogDescription>Välj vilken plan du vill nedgradera till.</AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
             <Select value={selectedDowngradePlan || ""} onValueChange={setSelectedDowngradePlan}>
-              <SelectTrigger><SelectValue placeholder="Valj plan" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Välj plan" /></SelectTrigger>
               <SelectContent>
                 {downgradeOptions.map(([key, plan]) => (
                   <SelectItem key={key} value={key}>{plan.name} - {plan.credits} krediter ({plan.price} kr)</SelectItem>
