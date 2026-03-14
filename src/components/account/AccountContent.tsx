@@ -14,7 +14,7 @@ import { AIProfileProgress } from "@/components/AIProfileProgress";
 import CreditsDisplay from "@/components/CreditsDisplay";
 import PromoCodeInput from "@/components/PromoCodeInput";
 import { useNavigate } from "react-router-dom";
-import { SWISH_PLANS, CREDIT_PACKAGES } from "@/lib/swishConfig";
+import { STRIPE_CREDIT_PACKAGES, STRIPE_PLANS } from "@/lib/stripeConfig";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -49,6 +49,24 @@ const AccountContent = () => {
     malsattning: "", tonalitet: "", allman_info: "", nyckelord: "",
   });
   const [isSavingAIProfile, setIsSavingAIProfile] = useState(false);
+  const [hasActiveStripeSubscription, setHasActiveStripeSubscription] = useState(false);
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+
+  const handleOpenPortal = async () => {
+    setIsOpeningPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('stripe-portal', { body: {} });
+      if (error || !data?.url) {
+        toast({ title: "Ingen aktiv prenumeration hittades", variant: "destructive" });
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      toast({ title: "Fel", description: "Kunde inte öppna prenumerationshanteringen.", variant: "destructive" });
+    } finally {
+      setIsOpeningPortal(false);
+    }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -62,6 +80,19 @@ const AccountContent = () => {
       }
     };
     fetchUserData();
+
+    // Check for active Stripe subscription
+    const checkStripeSubscription = async () => {
+      if (!user?.id) return;
+      const { data } = await supabase
+        .from('stripe_subscriptions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+      setHasActiveStripeSubscription(!!data);
+    };
+    checkStripeSubscription();
   }, [user]);
 
   useEffect(() => {
@@ -121,7 +152,7 @@ const AccountContent = () => {
     if (!user?.id || !selectedDowngradePlan) return;
     setIsDowngrading(true);
     try {
-      const plan = SWISH_PLANS[selectedDowngradePlan as keyof typeof SWISH_PLANS];
+      const plan = STRIPE_PLANS[selectedDowngradePlan as keyof typeof STRIPE_PLANS];
       const { error } = await supabase.from('users').update({
         plan: selectedDowngradePlan as any,
         max_credits: plan.credits,
@@ -152,7 +183,7 @@ const AccountContent = () => {
 
   const hasActivePlan = credits?.plan && !['free_trial'].includes(credits.plan);
   const currentTierLevel = credits?.plan ? getTierLevel(credits.plan) : 0;
-  const downgradeOptions = Object.entries(SWISH_PLANS).filter(([key]) => getTierLevel(key) < currentTierLevel);
+  const downgradeOptions = Object.entries(STRIPE_PLANS).filter(([key]) => getTierLevel(key) < currentTierLevel);
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -172,8 +203,8 @@ const AccountContent = () => {
               <Plus className="w-3.5 h-3.5" /> Fyll pa krediter
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {Object.entries(CREDIT_PACKAGES).map(([key, pkg]) => (
-                <Button key={key} variant="outline" className="flex flex-col h-auto py-2" onClick={() => navigate(`/swish-checkout?type=credits&package=${key}`)}>
+              {Object.entries(STRIPE_CREDIT_PACKAGES).map(([key, pkg]) => (
+                <Button key={key} variant="outline" className="flex flex-col h-auto py-2" onClick={() => navigate(`/checkout?package=${key}&type=credits`)}>
                   <span className="text-base font-bold">{pkg.credits}</span>
                   <span className="text-[10px] text-muted-foreground">krediter</span>
                   <span className="text-sm font-semibold text-primary mt-0.5">{pkg.price} kr</span>
@@ -187,6 +218,12 @@ const AccountContent = () => {
               <CreditCard className="w-4 h-4 mr-1.5" />
               {hasActivePlan ? "Uppgradera plan" : "Välj plan"}
             </Button>
+            {hasActiveStripeSubscription && (
+              <Button variant="outline" size="sm" onClick={handleOpenPortal} disabled={isOpeningPortal}>
+                <CreditCard className="w-4 h-4 mr-1.5" />
+                {isOpeningPortal ? "Öppnar..." : "Hantera prenumeration"}
+              </Button>
+            )}
             {hasActivePlan && downgradeOptions.length > 0 && (
               <Button variant="outline" size="sm" onClick={() => setShowDowngradeDialog(true)}>
                 <ArrowDown className="w-4 h-4 mr-1.5" /> Nedgradera

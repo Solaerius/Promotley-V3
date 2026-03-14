@@ -142,7 +142,7 @@ const Pricing = () => {
                         ))}
                       </ul>
 
-                      <Link to={`/swish-checkout?plan=${planSlug}`} className="block pt-2">
+                      <Link to={`/checkout?plan=${planSlug}&type=plan`} className="block pt-2">
                         <Button
                           className="w-full text-white font-semibold"
                           size="lg"
@@ -151,7 +151,7 @@ const Pricing = () => {
                             boxShadow: '0 8px 30px hsl(9 85% 45% / 0.4)',
                           }}
                         >
-                          Betala med Swish
+                          Köp plan
                           <ArrowRight className="w-4 h-4 ml-2" />
                         </Button>
                       </Link>
@@ -209,7 +209,7 @@ const Pricing = () => {
                     ))}
                   </ul>
 
-                  <Link to={`/swish-checkout?plan=${planSlug}`} className="block pt-2">
+                  <Link to={`/checkout?plan=${planSlug}&type=plan`} className="block pt-2">
                     <Button
                       className="w-full text-white border"
                       size="lg"
@@ -218,7 +218,7 @@ const Pricing = () => {
                         borderColor: 'hsl(0 0% 100% / 0.12)',
                       }}
                     >
-                      Betala med Swish
+                      Köp plan
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </Link>
