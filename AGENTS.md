@@ -3,6 +3,10 @@
 ## Project Structure & Module Organization
 `src/` contains the Vite React app. Use `src/pages/` for route-level screens, `src/components/` for reusable UI and feature blocks, `src/hooks/` for shared React hooks, `src/lib/` for helpers and config, and `src/integrations/supabase/` for client types and setup. Static files live in `public/`; bundled images and app assets live in `src/assets/`. Database migrations and Edge Functions are in `supabase/migrations/` and `supabase/functions/`. Design and rollout notes belong in `docs/superpowers/specs/`.
 
+## IMPORTANT INSTRUCTIONS
+- Before using or writing ANY code that requires external API docs or libraries, you MUST use the Context7 tools you have access to, to pull the latest documentations and ensure your code is up to date and accurate.
+
+
 ## Build, Test, and Development Commands
 Install dependencies with `npm install`.
 
