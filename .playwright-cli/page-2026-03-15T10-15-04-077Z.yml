@@ -1,0 +1,40 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e760]:
+    - link "Tillbaka till startsidan" [ref=e761] [cursor=pointer]:
+      - /url: /
+      - button "Tillbaka till startsidan" [ref=e762]:
+        - img
+        - text: Tillbaka till startsidan
+    - link "Promotley Logo Promotley" [ref=e764] [cursor=pointer]:
+      - /url: /
+      - img "Promotley Logo" [ref=e765]
+      - generic [ref=e766]: Promotley
+    - generic [ref=e767]:
+      - heading "Välkommen tillbaka" [level=1] [ref=e768]
+      - paragraph [ref=e769]: Logga in för att fortsätta till din dashboard
+    - generic [ref=e770]:
+      - generic [ref=e771]:
+        - text: E-post
+        - textbox "E-post" [ref=e772]:
+          - /placeholder: namn@foretagsnamn.se
+      - generic [ref=e773]:
+        - text: Lösenord
+        - generic [ref=e774]:
+          - textbox "Lösenord" [ref=e775]:
+            - /placeholder: ••••••••
+          - button [ref=e776] [cursor=pointer]:
+            - img [ref=e777]
+        - button "Glömt lösenord?" [ref=e781] [cursor=pointer]
+      - button "Logga in" [ref=e782] [cursor=pointer]
+    - generic [ref=e787]: Eller fortsätt med
+    - generic [ref=e788]:
+      - button "Fortsätt med Google" [ref=e789] [cursor=pointer]:
+        - img
+        - text: Fortsätt med Google
+      - button "Fortsätt med Apple" [ref=e790] [cursor=pointer]:
+        - img
+        - text: Fortsätt med Apple
+    - button "Inget konto? Registrera dig" [ref=e792] [cursor=pointer]

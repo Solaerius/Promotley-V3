@@ -446,6 +446,7 @@ const Auth = () => {
               <Input
                 id="companyName"
                 type="text"
+                autoComplete="organization"
                 placeholder="Mitt UF-företag"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
@@ -462,6 +463,7 @@ const Auth = () => {
             <Input
               id="email"
               type="email"
+              autoComplete="email"
               placeholder="namn@foretagsnamn.se"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -479,6 +481,7 @@ const Auth = () => {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
+                autoComplete={isLogin ? "current-password" : "new-password"}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -523,6 +526,7 @@ const Auth = () => {
                         <Input
                           id="resetEmail"
                           type="email"
+                          autoComplete="email"
                           placeholder="namn@foretagsnamn.se"
                           value={resetEmail}
                           onChange={(e) => setResetEmail(e.target.value)}
@@ -550,6 +554,7 @@ const Auth = () => {
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
+                  autoComplete="new-password"
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}

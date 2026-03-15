@@ -1,0 +1,101 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e760]:
+    - link "Tillbaka till startsidan" [ref=e761] [cursor=pointer]:
+      - /url: /
+      - button "Tillbaka till startsidan" [ref=e762]:
+        - img
+        - text: Tillbaka till startsidan
+    - link "Promotley Logo Promotley" [ref=e764] [cursor=pointer]:
+      - /url: /
+      - img "Promotley Logo" [ref=e765]
+      - generic [ref=e766]: Promotley
+    - generic [ref=e767]:
+      - heading "Kom igång gratis" [level=1] [ref=e793]
+      - paragraph [ref=e769]: Skapa ditt konto och få 1 gratis AI-förslag
+    - generic [ref=e794]:
+      - generic [ref=e795]: Vad vill du göra?
+      - generic [ref=e796]:
+        - button "Registrera nytt företag Skapa ditt UF-företag" [ref=e797] [cursor=pointer]:
+          - generic [ref=e798]: Registrera nytt företag
+          - generic [ref=e799]: Skapa ditt UF-företag
+        - button "Gå med i företag Anslut med inbjudningskod" [ref=e800] [cursor=pointer]:
+          - generic [ref=e801]: Gå med i företag
+          - generic [ref=e802]: Anslut med inbjudningskod
+    - generic [ref=e770]:
+      - generic [ref=e803]:
+        - text: Företagsnamn
+        - textbox "Företagsnamn" [ref=e804]:
+          - /placeholder: Mitt UF-företag
+        - paragraph [ref=e805]: Du kan ändra detta senare i inställningarna.
+      - generic [ref=e771]:
+        - text: E-post
+        - textbox "E-post" [ref=e772]:
+          - /placeholder: namn@foretagsnamn.se
+      - generic [ref=e773]:
+        - text: Lösenord
+        - generic [ref=e774]:
+          - textbox "Lösenord" [ref=e775]:
+            - /placeholder: ••••••••
+          - button [ref=e776] [cursor=pointer]:
+            - img [ref=e777]
+        - generic [ref=e806]:
+          - generic [ref=e807]:
+            - img [ref=e808]
+            - generic [ref=e811]: Minst 8 tecken
+          - generic [ref=e812]:
+            - img [ref=e813]
+            - generic [ref=e816]: Innehåller stor bokstav
+          - generic [ref=e817]:
+            - img [ref=e818]
+            - generic [ref=e821]: Innehåller liten bokstav
+          - generic [ref=e822]:
+            - img [ref=e823]
+            - generic [ref=e826]: Innehåller siffra
+      - generic [ref=e827]:
+        - text: Bekräfta lösenord
+        - generic [ref=e828]:
+          - textbox "Bekräfta lösenord" [ref=e829]:
+            - /placeholder: ••••••••
+          - button [ref=e830] [cursor=pointer]:
+            - img [ref=e831]
+      - generic [ref=e834]:
+        - generic [ref=e835]: Kampanjkod (valfritt)
+        - textbox "Kampanjkod (valfritt)" [ref=e836]:
+          - /placeholder: T.ex. FREEUF50
+        - paragraph [ref=e837]: Har du fått en kod? Den löses in automatiskt efter verifiering.
+      - generic [ref=e838]:
+        - generic [ref=e839]:
+          - checkbox "Jag accepterar användarvillkoren och integritetspolicyn" [ref=e840] [cursor=pointer]
+          - checkbox
+          - generic [ref=e841]:
+            - text: Jag accepterar
+            - link "användarvillkoren" [ref=e842] [cursor=pointer]:
+              - /url: /terms-of-service
+            - text: och
+            - link "integritetspolicyn" [ref=e843] [cursor=pointer]:
+              - /url: /privacy-policy
+        - generic [ref=e844]:
+          - checkbox "Nyhetsbrev och tips" [checked] [ref=e845] [cursor=pointer]:
+            - generic:
+              - img
+          - checkbox [checked]
+          - generic [ref=e846]: Nyhetsbrev och tips
+        - generic [ref=e847]:
+          - checkbox "Erbjudanden och kampanjer" [checked] [ref=e848] [cursor=pointer]:
+            - generic:
+              - img
+          - checkbox [checked]
+          - generic [ref=e849]: Erbjudanden och kampanjer
+      - button "Skapa konto" [disabled]
+    - generic [ref=e787]: Eller fortsätt med
+    - generic [ref=e788]:
+      - button "Fortsätt med Google" [ref=e789] [cursor=pointer]:
+        - img
+        - text: Fortsätt med Google
+      - button "Fortsätt med Apple" [ref=e790] [cursor=pointer]:
+        - img
+        - text: Fortsätt med Apple
+    - button "Har redan konto? Logga in" [active] [ref=e850] [cursor=pointer]

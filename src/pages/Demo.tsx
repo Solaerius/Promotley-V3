@@ -40,6 +40,18 @@ const demoAITools = [
   { icon: Lightbulb, title: "UF-tips", description: "Få råd specifikt för UF-företag", color: "from-indigo-500 to-purple-500" },
 ];
 
+const demoChartTheme = {
+  cardBackground: 'linear-gradient(180deg, hsl(0 0% 100% / 0.8) 0%, hsl(0 0% 100% / 0.58) 100%)',
+  darkCardBackground: 'linear-gradient(180deg, hsl(240 18% 14% / 0.88) 0%, hsl(240 18% 10% / 0.76) 100%)',
+  areaStart: 'hsl(var(--primary) / 0.4)',
+  areaEnd: 'hsl(var(--secondary) / 0.12)',
+  axis: 'hsl(var(--foreground) / 0.6)',
+  grid: 'hsl(var(--foreground) / 0.12)',
+  tooltipBackground: 'hsl(var(--background) / 0.96)',
+  tooltipBorder: 'hsl(var(--foreground) / 0.12)',
+  tooltipShadow: '0 16px 40px hsl(var(--foreground) / 0.08)',
+};
+
 const Demo = () => {
   const [clickCounts, setClickCounts] = useState<Record<string, number>>({});
   const [showLimitAlert, setShowLimitAlert] = useState(false);
@@ -239,22 +251,36 @@ const Demo = () => {
             </div>
 
             {/* Chart */}
-            <div className="rounded-2xl p-6 backdrop-blur-xl border border-white/20"
-              style={{ background: 'linear-gradient(135deg, hsl(0 0% 100% / 0.1) 0%, hsl(0 0% 100% / 0.05) 100%)' }}>
+            <div
+              className="rounded-2xl p-6 backdrop-blur-xl border border-white/20"
+              style={{
+                background: demoChartTheme.cardBackground,
+                boxShadow: 'inset 0 1px 0 hsl(0 0% 100% / 0.35), 0 24px 48px hsl(240 30% 10% / 0.08)',
+              }}
+            >
               <h3 className="text-lg font-semibold mb-4 dashboard-heading-dark">Tillväxt senaste 6 veckorna</h3>
               <ResponsiveContainer width="100%" height={200}>
                 <AreaChart data={demoChartData}>
                   <defs>
                     <linearGradient id="demoGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(9, 90%, 55%)" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="hsl(331, 70%, 45%)" stopOpacity={0.1} />
+                      <stop offset="5%" stopColor={demoChartTheme.areaStart} stopOpacity={1} />
+                      <stop offset="95%" stopColor={demoChartTheme.areaEnd} stopOpacity={1} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                  <XAxis dataKey="week" stroke="rgba(255,255,255,0.5)" fontSize={12} />
-                  <YAxis stroke="rgba(255,255,255,0.5)" fontSize={12} />
-                  <RechartsTooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px' }} />
-                  <Area type="monotone" dataKey="followers" stroke="hsl(9, 90%, 55%)" strokeWidth={2} fill="url(#demoGrad)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={demoChartTheme.grid} vertical={false} />
+                  <XAxis dataKey="week" stroke={demoChartTheme.axis} fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke={demoChartTheme.axis} fontSize={12} tickLine={false} axisLine={false} />
+                  <RechartsTooltip
+                    contentStyle={{
+                      backgroundColor: demoChartTheme.tooltipBackground,
+                      border: `1px solid ${demoChartTheme.tooltipBorder}`,
+                      borderRadius: '12px',
+                      boxShadow: demoChartTheme.tooltipShadow,
+                    }}
+                    labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 600 }}
+                    itemStyle={{ color: 'hsl(var(--foreground))' }}
+                  />
+                  <Area type="monotone" dataKey="followers" stroke="hsl(var(--primary))" strokeWidth={3} fill="url(#demoGrad)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
