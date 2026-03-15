@@ -66,6 +66,7 @@ const Dashboard = () => {
     if (!user?.id) return;
     const fetchActivity = async () => {
       const activities: { type: string; icon: React.ElementType; label: string; detail: string; time: string }[] = [];
+      const upcomingFromPosts = posts?.filter((p) => new Date(p.date) >= new Date()).slice(0, 4) || [];
       const { data: aiMessages } = await supabase
         .from("ai_chat_messages").select("created_at, message").eq("role", "user")
         .order("created_at", { ascending: false }).limit(3);
@@ -78,7 +79,7 @@ const Dashboard = () => {
           });
         });
       }
-      upcomingPosts.forEach((post) => {
+      upcomingFromPosts.forEach((post) => {
         activities.push({ type: "post", icon: Calendar, label: "Planerat inlägg", detail: post.title, time: post.date });
       });
       activities.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
@@ -109,7 +110,8 @@ const Dashboard = () => {
   useEffect(() => {
     if (isConnected("tiktok")) setActivePlatform("tiktok");
     else if (isConnected("meta_ig")) setActivePlatform("meta_ig");
-  }, [connections]);
+    else setActivePlatform("overview");
+  }, [connections, isConnected]);
 
   const overviewStatCards = [
     { label: "FÖLJARE", value: formatNumber(totalFollowers), icon: Users, sub: "Alla plattformar", color: STAT_COLORS.primary },
@@ -153,65 +155,245 @@ const Dashboard = () => {
   const firstName = user?.email?.split("@")[0] || "du";
   const showTikTokContent = (activePlatform === "tiktok" || activePlatform === "overview") && isConnected("tiktok");
   const anyConnected = isConnected("tiktok") || isConnected("meta_ig");
+  const activePlatformLabel = platformTabs.find((tab) => tab.key === activePlatform)?.label || "Översikt";
+  const primaryStatCard = activeStatCards[0];
+  const secondaryStatCards = activeStatCards.slice(1);
+  const PrimaryStatIcon = primaryStatCard.icon;
+  const nextPost = upcomingPosts[0];
+  const focusAction = !anyConnected
+    ? {
+        title: "Anslut ditt första konto",
+        description: "Koppla TikTok eller Instagram för att fylla hemskärmen med live-data.",
+        href: "/account?tab=app",
+        cta: "Anslut konto",
+        icon: CheckCircle2,
+      }
+    : upcomingPosts.length === 0
+      ? {
+          title: "Bygg veckans publiceringar",
+          description: "Kalendern är tom. Lägg in nästa kampanj medan signalerna är färska.",
+          href: "/calendar",
+          cta: "Öppna kalender",
+          icon: Calendar,
+        }
+      : {
+          title: nextPost?.title || "Se nästa publicering",
+          description: "Du har redan fart i planeringen. Håll rytmen uppe och jobba vidare från kalendern.",
+          href: "/calendar",
+          cta: "Visa plan",
+          icon: Sparkles,
+        };
+  const heroSignals = [
+    {
+      label: "Kanaler",
+      value: anyConnected ? `${connections.length} live` : "Startläge",
+      detail: anyConnected ? "Konton är anslutna och synkar data." : "Börja med att koppla dina plattformar.",
+      icon: CheckCircle2,
+      color: STAT_COLORS.violet,
+    },
+    {
+      label: "Näst på tur",
+      value: nextPost ? format(new Date(nextPost.date), "d MMM", { locale: sv }) : "Ingen plan",
+      detail: nextPost ? nextPost.title : "Lägg in veckans nästa publicering.",
+      icon: Calendar,
+      color: STAT_COLORS.amber,
+    },
+    {
+      label: "Aktivitet",
+      value: `${recentActivity.length}`,
+      detail: recentActivity.length ? "Nya signaler redo att följa upp." : "Feeden fylls när du använder verktygen.",
+      icon: Sparkles,
+      color: STAT_COLORS.primary,
+    },
+  ];
+  const workspaceLinks = [
+    {
+      title: "Djupdyk i statistik",
+      desc: "Öppna analysvyn och jämför räckvidd, följare och engagemang.",
+      href: "/analytics",
+      icon: BarChart3,
+      color: STAT_COLORS.primary,
+    },
+    {
+      title: "Prata med AI",
+      desc: "Samla idéer, captions och nästa kampanjsteg direkt från dagens läge.",
+      href: "/ai/chat",
+      icon: Sparkles,
+      color: STAT_COLORS.teal,
+    },
+    {
+      title: "Planera kalendern",
+      desc: nextPost ? `${upcomingPosts.length} inlägg ligger redan klara i planen.` : "Bygg en tydlig rytm för veckan i kalendern.",
+      href: "/calendar",
+      icon: Calendar,
+      color: STAT_COLORS.amber,
+    },
+  ];
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-5xl mx-auto">
+      <div className="space-y-6 max-w-6xl mx-auto">
 
-        {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-border/40">
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">Välkommen tillbaka, {firstName}</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Här är en snabb överblick av dina konton.</p>
-          </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/analytics">Se statistik <ArrowRight className="w-3.5 h-3.5 ml-1.5" /></Link>
-          </Button>
-        </div>
+        <section className="relative overflow-hidden rounded-[28px] border border-border/40 bg-card/90 shadow-sm">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-amber-500/10" />
+          <div className="pointer-events-none absolute -top-16 right-8 h-44 w-44 rounded-full bg-primary/12 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-0 left-10 h-36 w-36 rounded-full bg-amber-500/10 blur-3xl" />
 
-        {/* Platform Tabs — pill style */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {platformTabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activePlatform === tab.key;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setActivePlatform(tab.key)}
-                className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
-                  isActive
-                    ? "bg-primary/15 text-primary border border-primary/30"
-                    : "text-muted-foreground hover:bg-muted border border-transparent"
-                }`}
-              >
-                {Icon && <Icon className="w-3.5 h-3.5" />}
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Stat Cards — bolder */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {activeStatCards.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={stat.label}
-                className={`rounded-2xl bg-card border border-border/40 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-4 border-l-2 ${stat.color.border}`}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-[10px] font-semibold tracking-widest text-muted-foreground">{stat.label}</p>
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${stat.color.bg}`}>
-                    <Icon className={`w-3.5 h-3.5 ${stat.color.text}`} />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-foreground tracking-tight leading-none">{stat.value}</p>
-                <p className="text-[11px] text-muted-foreground mt-1.5">{stat.sub}</p>
+          <div className="relative grid gap-4 p-5 lg:grid-cols-[1.35fr_0.95fr] lg:p-6">
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-border/50 bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground">
+                  Dagens brief
+                </span>
+                <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  {activePlatformLabel}
+                </span>
               </div>
-            );
-          })}
-        </div>
+
+              <div className="space-y-3">
+                <h1 className="max-w-2xl text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+                  Välkommen tillbaka, {firstName}
+                </h1>
+                <p className="max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
+                  {anyConnected
+                    ? "Din hemvy är nu byggd som ett arbetsbord: signaler, planering och verktyg ligger i samma flöde."
+                    : "Koppla dina kanaler för att fylla hemvyn med live-data, aktivitet och smartare förslag."}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {platformTabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activePlatform === tab.key;
+
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActivePlatform(tab.key)}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                        isActive
+                          ? "border-primary/30 bg-primary/15 text-primary shadow-sm"
+                          : "border-border/40 bg-background/70 text-muted-foreground hover:border-border/60 hover:bg-muted/70"
+                      }`}
+                    >
+                      {Icon && <Icon className="w-3.5 h-3.5" />}
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                {heroSignals.map((signal) => {
+                  const Icon = signal.icon;
+
+                  return (
+                    <div key={signal.label} className="rounded-[22px] border border-border/30 bg-background/70 p-4 backdrop-blur-sm">
+                      <div className="mb-4 flex items-center justify-between">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80">
+                          {signal.label}
+                        </p>
+                        <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${signal.color.bg}`}>
+                          <Icon className={`h-4 w-4 ${signal.color.text}`} />
+                        </div>
+                      </div>
+                      <p className="text-lg font-semibold tracking-tight text-foreground">{signal.value}</p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">{signal.detail}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-[24px] border border-border/30 bg-background/70 p-5 backdrop-blur-sm">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80">
+                  Fokus just nu
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+                  {focusAction.title}
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{focusAction.description}</p>
+                <Button className="mt-5 w-full justify-between" asChild>
+                  <Link to={focusAction.href}>
+                    {focusAction.cta}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+                {workspaceLinks.map((link) => {
+                  const Icon = link.icon;
+
+                  return (
+                    <Link
+                      key={link.title}
+                      to={link.href}
+                      className="group rounded-[22px] border border-border/30 bg-background/70 p-4 transition-all hover:border-border/50 hover:bg-card"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${link.color.bg}`}>
+                          <Icon className={`h-4 w-4 ${link.color.text}`} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-sm font-semibold text-foreground">{link.title}</p>
+                            <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                          </div>
+                          <p className="mt-1 text-xs leading-5 text-muted-foreground">{link.desc}</p>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-4 xl:grid-cols-[1.2fr_0.95fr]">
+          <div className="rounded-[28px] border border-border/40 bg-card/90 p-5 shadow-sm">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80">
+              Huvudsignal
+            </p>
+            <div className="mt-4 flex flex-wrap items-end gap-3">
+              <h2 className="text-5xl font-semibold tracking-tight text-foreground md:text-6xl">
+                {primaryStatCard.value}
+              </h2>
+              <span className={`mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${primaryStatCard.color.bg} ${primaryStatCard.color.text} ${primaryStatCard.color.border}`}>
+                <PrimaryStatIcon className="h-3.5 w-3.5" />
+                {primaryStatCard.label}
+              </span>
+            </div>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+              {anyConnected
+                    ? "Den stora signalen får vara ditt avstamp. Resten av hemvyn hjälper dig att gå vidare till nästa steg."
+                    : "När dina konton är anslutna förvandlas den här ytan till ditt live-läge för marknadsföringen."}
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            {secondaryStatCards.map((stat) => {
+              const Icon = stat.icon;
+
+              return (
+                <div key={stat.label} className="rounded-[24px] border border-border/40 bg-card/90 p-4 shadow-sm">
+                  <div className="mb-5 flex items-center justify-between">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80">
+                      {stat.label}
+                    </p>
+                    <div className={`flex h-9 w-9 items-center justify-center rounded-2xl ${stat.color.bg}`}>
+                      <Icon className={`h-4 w-4 ${stat.color.text}`} />
+                    </div>
+                  </div>
+                  <p className="text-3xl font-semibold tracking-tight text-foreground">{stat.value}</p>
+                  <p className="mt-2 text-xs leading-5 text-muted-foreground">{stat.sub}</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
 
         {/* Main content: left + right */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -391,32 +573,6 @@ const Dashboard = () => {
               </div>
             )}
 
-            {/* Overview quick links */}
-            {activePlatform === "overview" && (
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { title: "Statistik", desc: "Se dina siffror", href: "/analytics", icon: BarChart3, color: STAT_COLORS.primary },
-                  { title: "AI-Chat", desc: "Prata med AI", href: "/ai/chat", icon: MessageSquare, color: STAT_COLORS.teal },
-                  { title: "Kalender", desc: "Planera innehåll", href: "/calendar", icon: Calendar, color: STAT_COLORS.amber },
-                ].map((link) => {
-                  const Icon = link.icon;
-                  return (
-                    <Link key={link.title} to={link.href}>
-                      <div className={`flex flex-col gap-3 p-4 rounded-2xl bg-card border border-border/40 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 h-full border-l-2 ${link.color.border}`}>
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${link.color.bg}`}>
-                          <Icon className={`w-4 h-4 ${link.color.text}`} />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-foreground">{link.title}</p>
-                          <p className="text-xs text-muted-foreground">{link.desc}</p>
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-
             {/* Not connected states */}
             {activePlatform === "tiktok" && !isConnected("tiktok") && (
               <div className="rounded-2xl bg-card border border-border/40 p-8 text-center">
@@ -525,3 +681,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

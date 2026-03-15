@@ -15,6 +15,9 @@ Install dependencies with `npm install`.
 ## Coding Style & Naming Conventions
 Use TypeScript with React function components and 2-space indentation, matching the existing files in `src/`. Prefer PascalCase for components and page files (`CheckoutSuccess.tsx`), `useX` for hooks (`useOrganization.ts`), and camelCase for utilities. Import shared modules through the configured `@/` alias instead of deep relative paths when practical. Styling is Tailwind-first; keep shadcn UI primitives in `src/components/ui/` and feature-specific composition outside that folder.
 
+## Dashboard Design Notes
+Preserve the existing dashboard theme tokens, color palette, glass/card treatment, and overall Promotely visual language. For the `Hem` dashboard specifically, prefer a more editorial workspace layout over a generic KPI grid: lead with a "daily brief" hero, keep one spotlight metric area, surface one clear next action, and use secondary cards as supporting rhythm rather than the main structure. When iterating on `src/pages/Dashboard.tsx`, avoid collapsing the page back into a standard header + four stat cards + two-column widget wall unless explicitly requested.
+
 ## Testing Guidelines
 There is currently no automated test runner configured in `package.json`. Until one is added, every change should pass `npm run lint`, a local smoke test through `npm run dev`, and any relevant Supabase flow you touched. If you introduce tests, colocate them with the feature as `*.test.ts` or `*.test.tsx` and add the corresponding script to `package.json`.
 
